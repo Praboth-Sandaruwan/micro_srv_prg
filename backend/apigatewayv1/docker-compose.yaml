@@ -1,0 +1,26 @@
+version: '3.9'
+
+services:
+  delivery-driver-service:
+    image: prabothsandaruwan/delivery-driver-service:latest
+    container_name: delivery-driver-service
+    ports:
+      - "8005:8005"
+    restart: unless-stopped
+
+  user-management-service:
+    image: samadhiliyanage/user_management_service:latest
+    container_name: user-management-service
+    ports:
+      - "5000:5000"
+    restart: unless-stopped
+
+  gateway:
+    image: nginx:alpine
+    container_name: api-gateway
+    depends_on:
+      - delivery-driver-service
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "80:80"
