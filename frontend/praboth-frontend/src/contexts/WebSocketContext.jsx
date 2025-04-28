@@ -1,3 +1,4 @@
+// src/contexts/WebSocketContext.jsx
 import React, {
   createContext,
   useState,
@@ -23,6 +24,7 @@ export const WebSocketProvider = ({ children }) => {
 
   const navigate = useNavigate();
 
+  // Close and clean up socket
   const closeSocket = () => {
     if (socketRef.current) {
       socketRef.current.close();
@@ -31,22 +33,22 @@ export const WebSocketProvider = ({ children }) => {
     heartbeatIntervalRef.current = null;
   };
 
+  // Reconnect logic with exponential backoff
   const reconnect = (driverId, token) => {
     if (retryCount >= 10) {
       console.error("Max retries reached, stopping reconnection.");
       return;
     }
-
     const delay =
       Math.min(1000 * Math.pow(2, retryCount), 30000) +
       Math.floor(Math.random() * 3000);
-
     retryTimeoutRef.current = setTimeout(() => {
       setRetryCount((prev) => prev + 1);
       connectWebSocket(driverId, token);
     }, delay);
   };
 
+  // WebSocket connection function
   const connectWebSocket = useCallback(
     (driverId, token) => {
       if (connectingRef.current) {
@@ -65,8 +67,7 @@ export const WebSocketProvider = ({ children }) => {
             retryCount + 1
           })`
         );
-
-        closeSocket(); // Close previous connection safely
+        closeSocket();
         const ws = new WebSocket(
           `ws://localhost:8006/deliverydriver/api/v1/ws/drivers/${driverId}?token=${token}`
         );
@@ -77,14 +78,13 @@ export const WebSocketProvider = ({ children }) => {
           setConnected(true);
           setRetryCount(0);
           connectingRef.current = false;
-
           localStorage.setItem("wsDriverId", driverId);
 
           heartbeatIntervalRef.current = setInterval(() => {
             if (ws.readyState === WebSocket.OPEN) {
               ws.send(JSON.stringify({ type: "ping" }));
             }
-          }, 1000);
+          }, 10000);
         };
 
         ws.onclose = (event) => {
@@ -96,7 +96,6 @@ export const WebSocketProvider = ({ children }) => {
           heartbeatIntervalRef.current = null;
 
           if (event.code === 1008) {
-            // Authentication error
             localStorage.removeItem("token");
             localStorage.removeItem("wsDriverId");
             navigate("/login");
@@ -132,15 +131,14 @@ export const WebSocketProvider = ({ children }) => {
     [navigate, retryCount]
   );
 
+  // Reconnect on page load if token and driverId exist
   useEffect(() => {
     const token = localStorage.getItem("token");
     const driverId = localStorage.getItem("wsDriverId");
-
     if (token && driverId) {
       try {
         const decoded = jwtDecode(token);
         const currentTime = Math.floor(Date.now() / 1000);
-
         if (decoded.exp && decoded.exp > currentTime) {
           connectWebSocket(driverId, token);
         } else {
@@ -157,29 +155,28 @@ export const WebSocketProvider = ({ children }) => {
     }
   }, [connectWebSocket, navigate]);
 
+  // Reconnect on tab visibility or online
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === "visible") {
         if (!connected && socketRef.current?.readyState !== WebSocket.OPEN) {
           const token = localStorage.getItem("token");
           const driverId = localStorage.getItem("wsDriverId");
-
           if (token && driverId) {
             connectWebSocket(driverId, token);
           }
         }
       }
     };
-
     document.addEventListener("visibilitychange", handleVisibilityChange);
     window.addEventListener("online", handleVisibilityChange);
-
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       window.removeEventListener("online", handleVisibilityChange);
     };
   }, [connectWebSocket, connected]);
 
+  // Clean up on unmount
   useEffect(() => {
     return () => {
       closeSocket();
@@ -187,21 +184,14 @@ export const WebSocketProvider = ({ children }) => {
     };
   }, []);
 
-  // 🌍 Location streaming effect
   useEffect(() => {
     let watchId = null;
-
     if (locationTracking && socketRef.current?.readyState === WebSocket.OPEN) {
       if (navigator.geolocation) {
         watchId = navigator.geolocation.watchPosition(
           (position) => {
             const { latitude, longitude } = position.coords;
-
-            const message = {
-              latitude,
-              longitude,
-            };
-
+            const message = { latitude, longitude };
             if (socketRef.current.readyState === WebSocket.OPEN) {
               socketRef.current.send(JSON.stringify(message));
             }
@@ -211,20 +201,31 @@ export const WebSocketProvider = ({ children }) => {
           },
           {
             enableHighAccuracy: true,
-            maximumAge: 5000,
+            maximumAge: 1000,
             timeout: 10000,
           }
         );
       }
     }
-
     return () => {
       if (watchId !== null) {
         navigator.geolocation.clearWatch(watchId);
       }
     };
-  }, [locationTracking]);
+  }, [locationTracking, connected]);
 
+  // Auto-start location tracking when connected
+  useEffect(() => {
+    if (
+      connected &&
+      !locationTracking &&
+      socketRef.current?.readyState === WebSocket.OPEN
+    ) {
+      setLocationTracking(true);
+    }
+  }, [connected, locationTracking]);
+
+  // Manual controls for location tracking
   const startLocationTracking = useCallback(() => {
     if (!socketRef.current || socketRef.current.readyState !== WebSocket.OPEN) {
       console.error("WebSocket not connected");
