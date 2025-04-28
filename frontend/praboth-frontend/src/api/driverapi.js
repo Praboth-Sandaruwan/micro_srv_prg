@@ -16,3 +16,10 @@ export async function fetchDrivers() {
     return response.data;
   }
 
+export async function fetchConnectedDrivers() {
+    const response = await api.get('ws/drivers/cdrivers');
+    return response;
+  }
+
+
+
