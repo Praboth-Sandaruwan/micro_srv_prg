@@ -73,7 +73,10 @@ export const DeliveryProvider = ({ children }) => {
         },
       };
 
+      console.log("New delivery accepted:", newDelivery);
+
       setCurrentDelivery(newDelivery);
+      localStorage.setItem("currentDelivery", JSON.stringify(newDelivery));
     } catch (err) {
       console.error("acceptDelivery error:", err);
     }
