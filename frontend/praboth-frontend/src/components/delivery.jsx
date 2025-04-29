@@ -139,7 +139,7 @@ export default function Delivery() {
       {
         enableHighAccuracy: true,
         maximumAge: 0,
-        timeout: 15000, 
+        timeout: 15000,
       }
     );
 

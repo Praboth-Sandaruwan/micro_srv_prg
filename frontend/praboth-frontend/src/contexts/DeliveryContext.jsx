@@ -1,12 +1,13 @@
 import React, { createContext, useState, useEffect, useContext } from "react";
+import { useNavigate } from "react-router-dom";
 
 const DeliveryContext = createContext(null);
 
 export const DeliveryProvider = ({ children }) => {
   const [currentDelivery, setCurrentDelivery] = useState(() => {
-    const savedDelivery = localStorage.getItem("currentDelivery");
-    if (savedDelivery) {
-      const parsed = JSON.parse(savedDelivery);
+    const saved = localStorage.getItem("currentDelivery");
+    if (saved) {
+      const parsed = JSON.parse(saved);
       parsed.history = parsed.history.map((h) => ({
         ...h,
         timestamp: new Date(h.timestamp),
@@ -16,40 +17,77 @@ export const DeliveryProvider = ({ children }) => {
     return null;
   });
 
+  const navigate = useNavigate();
+
   useEffect(() => {
     if (currentDelivery) {
-      const serializableDelivery = {
+      const serializable = {
         ...currentDelivery,
         history: currentDelivery.history.map((h) => ({
           ...h,
           timestamp: h.timestamp.toISOString(),
         })),
       };
-      localStorage.setItem(
-        "currentDelivery",
-        JSON.stringify(serializableDelivery)
-      );
+      localStorage.setItem("currentDelivery", JSON.stringify(serializable));
     } else {
       localStorage.removeItem("currentDelivery");
     }
   }, [currentDelivery]);
 
-  const acceptDelivery = (delivery) => {
-    setCurrentDelivery({
-      ...delivery,
-      status: "PICKUP",
-      history: [{ status: "PICKUP", timestamp: new Date() }],
-      restaurantLocation: {
-        lat: 6.829452,
-        lng: 79.934029,
-        address: "Restaurant Address",
-      },
-      deliveryAddress: {
-        lat: 6.820452,
-        lng: 79.943029,
-        fullAddress: "Delivery Address",
-      },
-    });
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (currentDelivery && window.location.pathname !== "/delivery" && token) {
+      navigate("/delivery");
+    }
+  }, [currentDelivery, navigate]);
+
+  const acceptDelivery = async (delivery) => {
+    try {
+      const [restaurantsRes, usersRes] = await Promise.all([
+        fetch("/db/restaurents.json"),
+        fetch("/db/users.json"),
+      ]);
+
+      if (!restaurantsRes.ok || !usersRes.ok)
+        throw new Error("JSON fetch failed");
+
+      const [restaurants, users] = await Promise.all([
+        restaurantsRes.json(),
+        usersRes.json(),
+      ]);
+
+      const restaurant = restaurants.find(
+        (r) => r._id === delivery.restaurantId
+      );
+      const customer = users.find((u) => u._id === delivery.userId);
+
+      if (!restaurant || !customer) {
+        console.error("Restaurant or Customer not found");
+        return;
+      }
+
+      console.log("Restaurant:", restaurant);
+      console.log("Customer:", customer);
+      console.log("Delivery:", delivery);
+
+      setCurrentDelivery({
+        ...delivery,
+        status: "PICKUP",
+        history: [{ status: "PICKUP", timestamp: new Date() }],
+        restaurantLocation: {
+          lat: restaurant.location.latitude,
+          lng: restaurant.location.longitude,
+          address: `${restaurant.address.street}, ${restaurant.address.city}`,
+        },
+        deliveryAddress: {
+          lat: customer.location.latitude,
+          lng: customer.location.longitude,
+          fullAddress: `${customer.address.street}, ${customer.address.city}`,
+        },
+      });
+    } catch (err) {
+      console.error("acceptDelivery error:", err);
+    }
   };
 
   const updateDeliveryStatus = (newStatus) => {
