@@ -1,0 +1,401 @@
+// src/pages/restaurant/UpdateRestaurant.jsx
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { showToast } from '../../components/ui/Toast';
+import api from '../../services/api';
+import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
+
+const cuisineTypes = [
+  'Italian', 'Chinese', 'Mexican', 'Indian', 'American',
+  'Japanese', 'Thai', 'Mediterranean', 'French', 'Greek',
+  'Korean', 'Vietnamese', 'Lebanese', 'Spanish', 'Other'
+];
+
+const UpdateRestaurant = () => {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [imagePreview, setImagePreview] = useState("");
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    address: {
+      street: '',
+      city: '',
+      state: '',
+      zipCode: ''
+    },
+    contactNumber: '',
+    email: '',
+    operatingHours: {
+      startTime: '',
+      endTime: ''
+    },
+    cuisine: '',
+    isOpen: true,
+    image: ''
+  });
+  const [errors, setErrors] = useState({});
+
+  useEffect(() => {
+    const fetchRestaurant = async () => {
+      try {
+        setInitialLoading(true);
+        const response = await api.get(`/restaurants/${id}`);
+        const { data } = response;
+        
+        setFormData({
+          name: data.name,
+          description: data.description,
+          address: data.address,
+          contactNumber: data.contactNumber,
+          email: data.email,
+          operatingHours: data.operatingHours,
+          cuisine: data.cuisine,
+          isOpen: data.isOpen,
+          image: data.image || ''
+        });
+
+        if (data.image) {
+          setImagePreview(data.image);
+        }
+      } catch (error) {
+        console.error('Error fetching restaurant:', error);
+        showToast.error(error.response?.data?.message || 'Failed to load restaurant data');
+        navigate('/restaurant/list');
+      } finally {
+        setInitialLoading(false);
+      }
+    };
+
+    fetchRestaurant();
+  }, [id, navigate]);
+
+  const validateForm = () => {
+    const newErrors = {};
+    
+    if (!formData.name.trim()) newErrors.name = 'Name is required';
+    if (!formData.description.trim()) newErrors.description = 'Description is required';
+    if (!formData.address.street.trim()) newErrors.street = 'Street address is required';
+    if (!formData.address.city.trim()) newErrors.city = 'City is required';
+    if (!formData.address.state.trim()) newErrors.state = 'State is required';
+    if (!formData.address.zipCode.trim()) newErrors.zipCode = 'ZIP code is required';
+    
+    if (!formData.contactNumber.trim()) {
+      newErrors.contactNumber = 'Contact number is required';
+    } else if (!/^\d{10}$/.test(formData.contactNumber.replace(/\D/g, ''))) {
+      newErrors.contactNumber = 'Enter a valid 10-digit phone number';
+    }
+    
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = 'Enter a valid email address';
+    }
+    
+    if (!formData.operatingHours.startTime) newErrors.startTime = 'Start time is required';
+    if (!formData.operatingHours.endTime) newErrors.endTime = 'End time is required';
+    if (!formData.cuisine) newErrors.cuisine = 'Cuisine type is required';
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    
+    if (name.includes('.')) {
+      const [parent, child] = name.split('.');
+      setFormData(prev => ({
+        ...prev,
+        [parent]: {
+          ...prev[parent],
+          [child]: value
+        }
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData(prev => ({
+          ...prev,
+          image: reader.result
+        }));
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleCuisineChange = (value) => {
+    setFormData({
+      ...formData,
+      cuisine: value
+    });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!validateForm()) {
+      showToast.error('Please fill all required fields correctly');
+      return;
+    }
+    
+    setLoading(true);
+    
+    try {
+      const response = await api.put(`/restaurants/${id}`, formData);
+      showToast.success(response.data.message || 'Restaurant updated successfully');
+      navigate('/restaurant/dashboard');
+    } catch (error) {
+      console.error('Update error:', error);
+      showToast.error(error.response?.data?.message || 'Failed to update restaurant');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (initialLoading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px' }}>
+        <LoadingSpinner size="lg" />
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px', marginTop: '20px' }}></div>
+      <div style={{ padding: '20px', borderRadius: '10px', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.5)', backgroundColor: 'rgba(255, 255, 255, 0.8)', backdropFilter: 'blur(10px)', marginBottom: '30px' }}>
+        <h2 style={{ textAlign: 'center', marginBottom: '30px', fontWeight: 'bold', color: 'black', fontSize: '20px' }}>Update Restaurant</h2>
+        <div>
+          <div>
+            <form onSubmit={handleSubmit}>
+              <div style={{ marginTop: '5px', marginBottom: '15px' }}>
+                <label htmlFor="restaurantName">Restaurant Name</label>
+                <input
+                  id="restaurantName"
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid #ccc', marginTop: '5px', marginBottom: '5px' }}
+                />
+                {errors.name && <span style={{ color: 'red', fontSize: '12px' }}>{errors.name}</span>}
+              </div>
+              
+              <div style={{ marginTop: '5px', marginBottom: '15px' }}>
+                <label htmlFor="description">Description</label>
+                <textarea
+                  id="description"
+                  name="description"
+                  value={formData.description}
+                  onChange={handleChange}
+                  rows="4"
+                  style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid #ccc', marginTop: '5px', marginBottom: '15px' }}
+                ></textarea>
+                {errors.description && <span style={{ color: 'red', fontSize: '12px' }}>{errors.description}</span>}
+              </div>
+              
+              <div style={{ marginTop: '5px', marginBottom: '15px' }}>
+                <label htmlFor="cuisine">Cuisine Type</label>
+                <div style={{ position: 'relative' }}>
+                  <select
+                    id="cuisine"
+                    name="cuisine"
+                    value={formData.cuisine}
+                    onChange={(e) => handleCuisineChange(e.target.value)}
+                    style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid #ccc', marginTop: '5px', marginBottom: '5px' }}
+                  >
+                    <option value="">Select Cuisine Type</option>
+                    {cuisineTypes.map((type) => (
+                      <option key={type} value={type}>{type}</option>
+                    ))}
+                  </select>
+                </div>
+                {errors.cuisine && <span style={{ color: 'red', fontSize: '12px' }}>{errors.cuisine}</span>}
+              </div>
+              
+              <div style={{ marginBottom: '15px' }}>
+                <h3 style={{ marginBottom: '10px' }}>Restaurant Image</h3>
+                <input
+                  type="file"
+                  id="restaurantImage"
+                  onChange={handleImageChange}
+                  accept="image/*"
+                  style={{ marginTop: '5px', marginBottom: '15px' }}
+                />
+                {imagePreview && (
+                  <div style={{ marginTop: '10px' }}>
+                    <img 
+                      src={imagePreview} 
+                      alt="Preview" 
+                      style={{ width: '100px', height: '100px', objectFit: 'cover' }}
+                    />
+                  </div>
+                )}
+              </div>
+
+              <div style={{ marginTop: '5px', marginBottom: '15px' }}>
+                <label htmlFor="email">Email</label>
+                <input
+                  id="email"
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid #ccc', marginTop: '5px', marginBottom: '5px' }}
+                />
+                {errors.email && <span style={{ color: 'red', fontSize: '12px' }}>{errors.email}</span>}
+              </div>
+              
+              <div style={{ marginTop: '5px', marginBottom: '15px' }}>
+                <label htmlFor="contactNumber">Contact Number</label>
+                <input
+                  id="contactNumber"
+                  type="text"
+                  name="contactNumber"
+                  value={formData.contactNumber}
+                  onChange={handleChange}
+                  style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid #ccc', marginTop: '5px', marginBottom: '5px' }}
+                />
+                {errors.contactNumber && <span style={{ color: 'red', fontSize: '12px' }}>{errors.contactNumber}</span>}
+              </div>
+
+              <div style={{ marginTop: '5px', marginBottom: '15px' }}>
+                <label htmlFor="street">Street</label>
+                <input
+                  id="street"
+                  type="text"
+                  name="address.street"
+                  value={formData.address.street}
+                  onChange={handleChange}
+                  style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid #ccc', marginTop: '5px', marginBottom: '5px' }}
+                />
+                {errors.street && <span style={{ color: 'red', fontSize: '12px' }}>{errors.street}</span>}
+              </div>
+              
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '15px', marginBottom: '15px' }}>
+                <div style={{ flex: '1 1 30%' }}>
+                  <label htmlFor="city">City</label>
+                  <input
+                    id="city"
+                    type="text"
+                    name="address.city"
+                    value={formData.address.city}
+                    onChange={handleChange}
+                    style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid #ccc', marginTop: '5px', marginBottom: '5px', fontSize: 'small' }}
+                  />
+                  {errors.city && <span style={{ color: 'red', fontSize: '12px' }}>{errors.city}</span>}
+                </div>
+                
+                <div style={{ flex: '1 1 30%' }}>
+                  <label htmlFor="state">State</label>
+                  <input
+                    id="state"
+                    type="text"
+                    name="address.state"
+                    value={formData.address.state}
+                    onChange={handleChange}
+                    style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid #ccc', marginTop: '5px', marginBottom: '5px', fontSize: 'small' }}
+                  />
+                  {errors.state && <span style={{ color: 'red', fontSize: '12px' }}>{errors.state}</span>}
+                </div>
+                
+                <div style={{ flex: '1 1 30%' }}>
+                  <label htmlFor="zipCode">ZIP Code</label>
+                  <input
+                    id="zipCode"
+                    type="text"
+                    name="address.zipCode"
+                    value={formData.address.zipCode}
+                    onChange={handleChange}
+                    style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid #ccc', marginTop: '5px', marginBottom: '5px', fontSize: 'small' }}
+                  />
+                  {errors.zipCode && <span style={{ color: 'red', fontSize: '12px' }}>{errors.zipCode}</span>}
+                </div>
+              </div>
+
+              <div style={{ marginTop: '5px', marginBottom: '15px' }}>
+                <h3 style={{ marginBottom: '10px' }}>Operating Hours</h3>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '15px', marginBottom: '15px' }}>
+                  <div style={{ flex: '1 1 45%' }}>
+                    <label htmlFor="startTime">Start Time</label>
+                    <input
+                      id="startTime"
+                      type="time"
+                      name="operatingHours.startTime"
+                      value={formData.operatingHours.startTime}
+                      onChange={handleChange}
+                      style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid #ccc', marginTop: '5px', marginBottom: '5px' }}
+                    />
+                    {errors.startTime && <span style={{ color: 'red', fontSize: '12px' }}>{errors.startTime}</span>}
+                  </div>
+                  
+                  <div style={{ flex: '1 1 45%' }}>
+                    <label htmlFor="endTime">End Time</label>
+                    <input
+                      id="endTime"
+                      type="time"
+                      name="operatingHours.endTime"
+                      value={formData.operatingHours.endTime}
+                      onChange={handleChange}
+                      style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid #ccc', marginTop: '5px', marginBottom: '5px' }}
+                    />
+                    {errors.endTime && <span style={{ color: 'red', fontSize: '12px' }}>{errors.endTime}</span>}
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ marginTop: '5px', marginBottom: '15px' }}>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={formData.isOpen}
+                    onChange={() => setFormData({...formData, isOpen: !formData.isOpen})}
+                    style={{ marginRight: '10px' }}
+                  />
+                  Restaurant is currently open
+                </label>
+                <span style={{ color: formData.isOpen ? 'green' : 'red', marginLeft: '10px' }}>
+                  {formData.isOpen ? 'Open' : 'Closed'}
+                </span>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginTop: '20px' }}>
+                <button
+                  type="button"
+                  onClick={() => navigate('/restaurant/list')}
+                  style={{ backgroundColor: '#d3d3d3', color: '#000', borderRadius: '5px', padding: '10px 20px' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  style={{ backgroundColor: '#248FDD', color: '#fff', borderRadius: '5px', padding: '10px 20px', display: 'flex', alignItems: 'center', gap: '5px' }}
+                >
+                  {loading && <LoadingSpinner size="sm" />}
+                  Update Restaurant
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default UpdateRestaurant;
