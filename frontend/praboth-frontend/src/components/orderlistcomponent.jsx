@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { CheckCircleIcon } from "@heroicons/react/24/outline";
 import Popup from "./Popup";
 import { useNavigate } from "react-router-dom";
+import { useDeliveryContext } from "../contexts/DeliveryContext";
 
 export default function OrderList() {
   const [orders, setOrders] = useState([]);
@@ -9,6 +10,7 @@ export default function OrderList() {
   const [showDetails, setShowDetails] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const navigate = useNavigate();
+  const {acceptDelivery} = useDeliveryContext();
 
 
   useEffect(() => {
@@ -47,6 +49,7 @@ export default function OrderList() {
     );
     setOrders(updatedOrders);
     localStorage.setItem("orders", JSON.stringify(updatedOrders));
+    acceptDelivery(selectedOrder);
     setShowConfirm(false);
     setSelectedOrder(null);
     navigate("/delivery");
