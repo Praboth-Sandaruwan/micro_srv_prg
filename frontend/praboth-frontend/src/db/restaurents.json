@@ -1,0 +1,86 @@
+[
+  {
+    "_id": "R001",
+    "name": "Blue Ocean Diner",
+    "description": "A cozy seaside restaurant offering fresh seafood and gourmet meals.",
+    "address": {
+      "street": "123 Marina Blvd",
+      "city": "Colombo",
+      "state": "Western Province",
+      "zipCode": "10001"
+    },
+    "contactNumber": "+94 771234567",
+    "email": "blueocean@example.com",
+    "owner": "U001",
+    "isVerified": false,
+    "status": "pending",
+    "operatingHours": {
+      "startTime": "08:00 AM",
+      "endTime": "10:00 PM"
+    },
+    "isOpen": true,
+    "cuisine": "Seafood",
+    "image": "blue-ocean.jpg",
+    "location": {
+      "latitude": 6.9271,
+      "longitude": 79.8612
+    },
+    "createdAt": "2025-04-29T11:30:00Z"
+  },
+  {
+    "_id": "R002",
+    "name": "Golden Spice Kitchen",
+    "description": "Authentic Sri Lankan flavors with a modern twist.",
+    "address": {
+      "street": "45 Cinnamon Lane",
+      "city": "Kandy",
+      "state": "Central Province",
+      "zipCode": "20001"
+    },
+    "contactNumber": "+94 772345678",
+    "email": "goldenspice@example.com",
+    "owner": "U002",
+    "isVerified": true,
+    "status": "verified",
+    "operatingHours": {
+      "startTime": "09:00 AM",
+      "endTime": "09:00 PM"
+    },
+    "isOpen": true,
+    "cuisine": "Sri Lankan",
+    "image": "golden-spice.jpg",
+    "location": {
+      "latitude": 7.2906,
+      "longitude": 80.6337
+    },
+    "createdAt": "2025-04-29T11:32:00Z"
+  },
+  {
+    "_id": "R003",
+    "name": "Urban Fusion Bistro",
+    "description": "A trendy spot blending international cuisine with fusion specialties.",
+    "address": {
+      "street": "78 City Square",
+      "city": "Galle",
+      "state": "Southern Province",
+      "zipCode": "30001"
+    },
+    "contactNumber": "+94 773456789",
+    "email": "urbanfusion@example.com",
+    "owner": "U003",
+    "isVerified": false,
+    "status": "pending",
+    "operatingHours": {
+      "startTime": "10:00 AM",
+      "endTime": "11:00 PM"
+    },
+    "isOpen": true,
+    "cuisine": "Fusion",
+    "image": "urban-fusion.jpg",
+    "location": {
+      "latitude": 6.0328,
+      "longitude": 80.2168
+    },
+    "createdAt": "2025-04-29T11:35:00Z"
+  }
+]

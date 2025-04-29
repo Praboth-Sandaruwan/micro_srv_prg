@@ -1,0 +1,54 @@
+[
+  {
+    "_id": "U001",
+    "name": "Sandaruwan Perera",
+    "email": "sandaruwan@example.com",
+    "password": "hashedpassword1",
+    "phoneNumber": "+94 771234567",
+    "role": "customer",
+    "createdAt": "2025-04-29T11:30:00Z",
+    "location": {
+      "latitude": 6.9271,
+      "longitude": 79.8612
+    }
+  },
+  {
+    "_id": "U002",
+    "name": "Nimal Fernando",
+    "email": "nimal@example.com",
+    "password": "hashedpassword2",
+    "phoneNumber": "+94 772345678",
+    "role": "customer",
+    "createdAt": "2025-04-29T11:32:00Z",
+    "location": {
+      "latitude": 7.2906,
+      "longitude": 80.6337
+    }
+  },
+  {
+    "_id": "U003",
+    "name": "Dilani Wickramasinghe",
+    "email": "dilani@example.com",
+    "password": "hashedpassword3",
+    "phoneNumber": "+94 773456789",
+    "role": "restaurant",
+    "createdAt": "2025-04-29T11:35:00Z",
+    "location": {
+      "latitude": 6.0328,
+      "longitude": 80.2168
+    }
+  },
+  {
+    "_id": "U004",
+    "name": "Kasun De Silva",
+    "email": "kasun@example.com",
+    "password": "hashedpassword4",
+    "phoneNumber": "+94 774567890",
+    "role": "admin",
+    "createdAt": "2025-04-29T11:40:00Z",
+    "location": {
+      "latitude": 6.9147,
+      "longitude": 79.9763
+    }
+  }
+]

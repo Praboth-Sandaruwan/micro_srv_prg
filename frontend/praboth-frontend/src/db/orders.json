@@ -1,0 +1,93 @@
+[
+    {
+      "_id": "ORD001",
+      "userId": "U001",
+      "restaurantId": "R001",
+      "items": [
+        {
+          "itemId": "I001",
+          "name": "Burger",
+          "price": 5.99,
+          "quantity": 2
+        },
+        {
+          "itemId": "I002",
+          "name": "Fries",
+          "price": 2.99,
+          "quantity": 1
+        }
+      ],
+      "total": 14.97,
+      "status": "PENDING",
+      "restaurantResponse": "PENDING",
+      "rejectionReason": null,
+      "deliveryAddress": {
+        "street": "123 Main St",
+        "city": "Colombo",
+        "state": "Western Province",
+        "zipCode": "10001"
+      },
+      "paymentId": "PAY001",
+      "createdAt": "2025-04-29T11:27:00Z",
+      "updatedAt": "2025-04-29T11:27:00Z"
+    },
+    {
+      "_id": "ORD002",
+      "userId": "U002",
+      "restaurantId": "R002",
+      "items": [
+        {
+          "itemId": "I003",
+          "name": "Pizza",
+          "price": 8.99,
+          "quantity": 1
+        }
+      ],
+      "total": 8.99,
+      "status": "PENDING",
+      "restaurantResponse": "PENDING",
+      "rejectionReason": null,
+      "deliveryAddress": {
+        "street": "456 Elm St",
+        "city": "Kandy",
+        "state": "Central Province",
+        "zipCode": "20001"
+      },
+      "paymentId": "PAY002",
+      "createdAt": "2025-04-29T11:27:00Z",
+      "updatedAt": "2025-04-29T11:27:00Z"
+    },
+    {
+      "_id": "ORD003",
+      "userId": "U003",
+      "restaurantId": "R003",
+      "items": [
+        {
+          "itemId": "I004",
+          "name": "Pasta",
+          "price": 7.49,
+          "quantity": 2
+        },
+        {
+          "itemId": "I005",
+          "name": "Garlic Bread",
+          "price": 3.99,
+          "quantity": 1
+        }
+      ],
+      "total": 18.97,
+      "status": "PENDING",
+      "restaurantResponse": "PENDING",
+      "rejectionReason": null,
+      "deliveryAddress": {
+        "street": "789 Maple St",
+        "city": "Galle",
+        "state": "Southern Province",
+        "zipCode": "30001"
+      },
+      "paymentId": "PAY003",
+      "createdAt": "2025-04-29T11:27:00Z",
+      "updatedAt": "2025-04-29T11:27:00Z"
+    }
+  ]
+  
