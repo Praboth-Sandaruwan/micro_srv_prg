@@ -1,55 +1,38 @@
 import React, { createContext, useState, useEffect, useContext } from "react";
-import { useNavigate } from "react-router-dom";
 
 const DeliveryContext = createContext(null);
 
 export const DeliveryProvider = ({ children }) => {
-  const navigate = useNavigate(); // ✅ Moved inside the component
-
   const [currentDelivery, setCurrentDelivery] = useState(() => {
-    try {
-      const saved = localStorage.getItem("currentDelivery");
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        parsed.history = parsed.history?.map((h) => ({
-          ...h,
-          timestamp: new Date(h.timestamp),
-        })) || [];
-        return parsed;
-      }
-    } catch (e) {
-      console.error("Failed to parse saved delivery:", e);
+    const savedDelivery = localStorage.getItem("currentDelivery");
+    if (savedDelivery) {
+      const parsed = JSON.parse(savedDelivery);
+      parsed.history = parsed.history.map((h) => ({
+        ...h,
+        timestamp: new Date(h.timestamp),
+      }));
+      return parsed;
     }
     return null;
   });
 
-  // Sync with localStorage
   useEffect(() => {
     if (currentDelivery) {
-      const serializable = {
+      const serializableDelivery = {
         ...currentDelivery,
-        history: currentDelivery.history?.map((h) => ({
+        history: currentDelivery.history.map((h) => ({
           ...h,
           timestamp: h.timestamp.toISOString(),
-        })) || [],
+        })),
       };
-      localStorage.setItem("currentDelivery", JSON.stringify(serializable));
+      localStorage.setItem(
+        "currentDelivery",
+        JSON.stringify(serializableDelivery)
+      );
     } else {
       localStorage.removeItem("currentDelivery");
     }
   }, [currentDelivery]);
-
-  // Auto-navigate to delivery page if a delivery is active
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (
-      currentDelivery &&
-      window.location.pathname !== "/delivery" &&
-      token
-    ) {
-      navigate("/delivery");
-    }
-  }, [currentDelivery, navigate]);
 
   const acceptDelivery = async (delivery) => {
     try {
@@ -96,20 +79,12 @@ export const DeliveryProvider = ({ children }) => {
     }
   };
 
-  // Debug state change
-  useEffect(() => {
-    console.log("State updated:", currentDelivery);
-  }, [currentDelivery]);
-
   const updateDeliveryStatus = (newStatus) => {
     if (!["PICKUP", "OUTFORDELIVERY"].includes(newStatus)) return;
     setCurrentDelivery((prev) => ({
       ...prev,
       status: newStatus,
-      history: [
-        ...(prev?.history || []),
-        { status: newStatus, timestamp: new Date() },
-      ],
+      history: [...prev.history, { status: newStatus, timestamp: new Date() }],
     }));
   };
 
