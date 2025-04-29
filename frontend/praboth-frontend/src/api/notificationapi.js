@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://localhost:8009/notification/ctrl/api/v1',
+  baseURL: 'http://localhost:8015/notification/ctrl/api/v1',
 });
 
 
