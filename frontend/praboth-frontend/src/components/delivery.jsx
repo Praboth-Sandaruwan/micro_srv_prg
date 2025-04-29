@@ -1,56 +1,31 @@
 import React, { useEffect, useState, useRef } from "react";
-import { MapContainer, TileLayer, useMap } from "react-leaflet";
-import L from "leaflet";
-import "leaflet-routing-machine";
+import {
+  GoogleMap,
+  Marker,
+  Polyline,
+  useLoadScript,
+} from "@react-google-maps/api";
 import { useDelivery } from "../contexts/DeliveryContext";
 import { jwtDecode } from "jwt-decode";
 import { fetchConnectedDrivers } from "../api/driverapi";
+import { fetchRouteFromGoMaps, snapToNearestRoad } from "../api/gomapsapi";
 
-// Fix Leaflet marker icons
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl:
-    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
-  iconUrl:
-    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
-  shadowUrl:
-    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
-});
+const GOOGLE_MAPS_API_KEY = "AIzaSyDR5IF3eFb_qb_0v-W-E299o8Z0zu_jd08";
 
-function Routing({ start, end }) {
-  const map = useMap();
-  const routeRef = useRef();
-
-  useEffect(() => {
-    if (!start || !end) return;
-
-    routeRef.current = L.Routing.control({
-      waypoints: [L.latLng(start[0], start[1]), L.latLng(end[0], end[1])],
-      routeWhileDragging: true,
-      show: false,
-      addWaypoints: false,
-      draggableWaypoints: false,
-      fitSelectedRoutes: true,
-    }).addTo(map);
-
-    return () => {
-      if (routeRef.current) {
-        map.removeControl(routeRef.current);
-      }
-    };
-  }, [map, start, end]);
-
-  return null;
-}
+const containerStyle = {
+  width: "100%",
+  height: "100%",
+};
 
 export default function Delivery() {
   const { currentDelivery } = useDelivery();
   const [driverLocation, setDriverLocation] = useState(null);
+  const [destination, setDestination] = useState(null);
+  const [routePath, setRoutePath] = useState([]);
   const [error, setError] = useState(null);
   const intervalRef = useRef();
   const mapRef = useRef();
 
-  // Get driver ID from JWT token
   const getDriverId = () => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -66,7 +41,10 @@ export default function Delivery() {
     }
   };
 
-  // Poll driver location from backend
+  const { isLoaded } = useLoadScript({
+    googleMapsApiKey: GOOGLE_MAPS_API_KEY,
+  });
+
   useEffect(() => {
     const driverId = getDriverId();
     if (!driverId) return;
@@ -76,7 +54,6 @@ export default function Delivery() {
         const response = await fetchConnectedDrivers();
         if (!response.data) throw new Error("Failed to fetch driver location");
 
-        // Convert object response to array of drivers
         const drivers = Object.entries(response.data).map(
           ([driverId, location]) => ({
             driverId,
@@ -85,18 +62,10 @@ export default function Delivery() {
         );
 
         const currentDriver = drivers.find((d) => d.driverId === driverId);
-        if (!currentDriver) {
-          return (
-            <div className="p-4 text-center">driver loading found</div>
-          );
-        }
-
-        console.log("Current driver:", currentDriver);
-
         if (currentDriver) {
           setDriverLocation({
-            latitude: currentDriver.latitude,
-            longitude: currentDriver.longitude,
+            lat: currentDriver.latitude,
+            lng: currentDriver.longitude,
           });
         }
       } catch (error) {
@@ -105,16 +74,85 @@ export default function Delivery() {
       }
     };
 
-    // Start polling immediately and every second
     pollDriverLocation();
-    intervalRef.current = setInterval(pollDriverLocation, 1000);
+    intervalRef.current = setInterval(pollDriverLocation, 3000);
 
-    // Cleanup interval on unmount
     return () => clearInterval(intervalRef.current);
   }, []);
 
+  useEffect(() => {
+    if (!currentDelivery) return;
+
+    const getDestination = () => {
+      if (currentDelivery.status === "PICKUP") {
+        return {
+          lat: currentDelivery.restaurantLocation.lat,
+          lng: currentDelivery.restaurantLocation.lng,
+        };
+      } else {
+        return {
+          lat: currentDelivery.deliveryAddress.lat,
+          lng: currentDelivery.deliveryAddress.lng,
+        };
+      }
+    };
+
+    setDestination(getDestination());
+  }, [currentDelivery]);
+
+  useEffect(() => {
+    const fetchRoute = async () => {
+      if (!driverLocation || !destination) return;
+
+      try {
+        // Step 1: Snap to nearest roads
+        const snappedPoints = await snapToNearestRoad([
+          driverLocation,
+          destination,
+        ]);
+
+        console.log("Snapped Points Response:", snappedPoints);
+
+        if (
+          !snappedPoints ||
+          snappedPoints.length < 2 ||
+          !snappedPoints[0].location ||
+          !snappedPoints[1].location
+        ) {
+          throw new Error("Snapping failed or incomplete location data.");
+        }
+
+        const snappedOrigin = {
+          lat: snappedPoints[0].location.latitude,
+          lng: snappedPoints[0].location.longitude,
+        };
+
+        const snappedDestination = {
+          lat: snappedPoints[1].location.latitude,
+          lng: snappedPoints[1].location.longitude,
+        };
+
+        // Step 2: Fetch route
+        const routeData = await fetchRouteFromGoMaps(
+          snappedOrigin,
+          snappedDestination
+        );
+        setRoutePath(routeData.path);
+      } catch (error) {
+        console.error("Error fetching/snapping route:", error);
+      }
+    };
+
+    fetchRoute();
+  }, [driverLocation, destination]);
+
+
+  if (!isLoaded) {
+    return <div>Loading Map...</div>;
+  }
+
   if (!currentDelivery) {
-    return <div className="p-4 text-center">No active delivery found</div>;
+    return <div className="p-4 text-center">No active delivery</div>;
   }
 
   if (error) {
@@ -122,45 +160,35 @@ export default function Delivery() {
   }
 
   if (!driverLocation) {
-    return <div className="p-4 text-center">Acquiring your location...</div>;
+    return <div className="p-4 text-center">Getting location...</div>;
   }
-
-  const getRoutePoints = () => {
-    const start = [driverLocation.latitude, driverLocation.longitude];
-    let end;
-
-    if (currentDelivery.status === "PICKUP") {
-      end = [
-        currentDelivery.restaurantLocation.lat,
-        currentDelivery.restaurantLocation.lng,
-      ];
-    } else {
-      end = [
-        currentDelivery.deliveryAddress.lat,
-        currentDelivery.deliveryAddress.lng,
-      ];
-    }
-
-    return { start, end };
-  };
-
-  const { start, end } = getRoutePoints();
 
   return (
     <div className="h-[calc(100vh-4rem)] relative">
-      <MapContainer
-        center={start}
+      <GoogleMap
+        center={driverLocation}
         zoom={13}
-        scrollWheelZoom={true}
-        ref={mapRef}
-        className="h-full w-full"
+        mapContainerStyle={containerStyle}
+        onLoad={(map) => (mapRef.current = map)}
       >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-        <Routing start={start} end={end} />
-      </MapContainer>
+        {/* Driver marker */}
+        <Marker position={driverLocation} label="You" />
+
+        {/* Destination marker */}
+        {destination && <Marker position={destination} label="Destination" />}
+
+        {/* Route polyline */}
+        {routePath.length > 0 && (
+          <Polyline
+            path={routePath}
+            options={{
+              strokeColor: "#007bff",
+              strokeOpacity: 0.8,
+              strokeWeight: 5,
+            }}
+          />
+        )}
+      </GoogleMap>
 
       <div className="absolute top-4 left-4 bg-white p-4 rounded-lg shadow-lg z-[1000]">
         <h2 className="text-lg font-bold mb-2">

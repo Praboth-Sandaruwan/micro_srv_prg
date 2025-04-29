@@ -23,13 +23,13 @@ export const DeliveryProvider = ({ children }) => {
       status: "PICKUP",
       history: [{ status: "PICKUP", timestamp: new Date() }],
       restaurantLocation: {
-        lat: 43.7128,  
-        lng: -76.0060, 
+        lat: 6.829452,  
+        lng: 79.934029, 
         address: "Restaurant Address"
       },
       deliveryAddress: {
-        lat: 46.7128,  
-        lng: -78.0060, 
+        lat: 6.820452,  
+        lng: 79.943029, 
         fullAddress: "Delivery Address"
       }
     });
