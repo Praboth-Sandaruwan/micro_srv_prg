@@ -9,6 +9,7 @@ import { useDelivery } from "../contexts/DeliveryContext";
 import { jwtDecode } from "jwt-decode";
 import { fetchConnectedDrivers } from "../api/driverapi";
 import { fetchRouteFromGoMaps, snapToNearestRoad } from "../api/gomapsapi";
+import { useNavigate } from "react-router-dom";
 
 const GOOGLE_MAPS_API_KEY = "AIzaSyDR5IF3eFb_qb_0v-W-E299o8Z0zu_jd08";
 
@@ -18,13 +19,19 @@ const containerStyle = {
 };
 
 export default function Delivery() {
-  const { currentDelivery } = useDelivery();
+  const { currentDelivery, updateDeliveryStatus, completeDelivery } =
+    useDelivery();
   const [driverLocation, setDriverLocation] = useState(null);
   const [destination, setDestination] = useState(null);
   const [routePath, setRoutePath] = useState([]);
   const [error, setError] = useState(null);
   const intervalRef = useRef();
   const mapRef = useRef();
+  const navigate = useNavigate();
+
+  const { isLoaded } = useLoadScript({
+    googleMapsApiKey: GOOGLE_MAPS_API_KEY,
+  });
 
   const getDriverId = () => {
     const token = localStorage.getItem("token");
@@ -40,10 +47,6 @@ export default function Delivery() {
       return null;
     }
   };
-
-  const { isLoaded } = useLoadScript({
-    googleMapsApiKey: GOOGLE_MAPS_API_KEY,
-  });
 
   useEffect(() => {
     const driverId = getDriverId();
@@ -98,6 +101,7 @@ export default function Delivery() {
     };
 
     setDestination(getDestination());
+    setRoutePath([]);
   }, [currentDelivery]);
 
   useEffect(() => {
@@ -105,47 +109,56 @@ export default function Delivery() {
       if (!driverLocation || !destination) return;
 
       try {
-        // Step 1: Snap to nearest roads
-        const snappedPoints = await snapToNearestRoad([
-          driverLocation,
-          destination,
-        ]);
-
-        console.log("Snapped Points Response:", snappedPoints);
-
-        if (
-          !snappedPoints ||
-          snappedPoints.length < 2 ||
-          !snappedPoints[0].location ||
-          !snappedPoints[1].location
-        ) {
-          throw new Error("Snapping failed or incomplete location data.");
-        }
-
-        const snappedOrigin = {
-          lat: snappedPoints[0].location.latitude,
-          lng: snappedPoints[0].location.longitude,
-        };
-
-        const snappedDestination = {
-          lat: snappedPoints[1].location.latitude,
-          lng: snappedPoints[1].location.longitude,
-        };
-
-        // Step 2: Fetch route
         const routeData = await fetchRouteFromGoMaps(
-          snappedOrigin,
-          snappedDestination
+          driverLocation,
+          destination
         );
-        setRoutePath(routeData.path);
+        const sampledPoints = samplePoints(routeData.path, 10);
+        const snappedPoints = await snapToNearestRoad(sampledPoints);
+
+        setRoutePath(
+          snappedPoints.map((p) => ({
+            lat: p.location.latitude,
+            lng: p.location.longitude,
+          }))
+        );
       } catch (error) {
+        setError(error.message);
         console.error("Error fetching/snapping route:", error);
       }
     };
 
     fetchRoute();
-  }, [driverLocation, destination]);
+  }, [driverLocation, destination, currentDelivery]);
 
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+  
+    const watchId = navigator.geolocation.watchPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        setDriverLocation({ lat: latitude, lng: longitude });
+  
+        // Optionally, if you have a live driver marker
+        if (driverMarkerRef.current) {
+          driverMarkerRef.current.position = { lat: latitude, lng: longitude };
+        }
+      },
+      (error) => console.error(error),
+      { enableHighAccuracy: true, maximumAge: 0, timeout: 5000 }
+    );
+  
+    return () => navigator.geolocation.clearWatch(watchId);
+  }, []);  
+
+  const handlePickup = () => {
+    updateDeliveryStatus("OUTFORDELIVERY");
+  };
+
+  const handleCompleteDelivery = () => {
+    completeDelivery();
+    navigate("/dashboard");
+  };
 
   if (!isLoaded) {
     return <div>Loading Map...</div>;
@@ -171,13 +184,8 @@ export default function Delivery() {
         mapContainerStyle={containerStyle}
         onLoad={(map) => (mapRef.current = map)}
       >
-        {/* Driver marker */}
         <Marker position={driverLocation} label="You" />
-
-        {/* Destination marker */}
         {destination && <Marker position={destination} label="Destination" />}
-
-        {/* Route polyline */}
         {routePath.length > 0 && (
           <Polyline
             path={routePath}
@@ -190,18 +198,52 @@ export default function Delivery() {
         )}
       </GoogleMap>
 
+      {/* Top Left Panel */}
       <div className="absolute top-4 left-4 bg-white p-4 rounded-lg shadow-lg z-[1000]">
         <h2 className="text-lg font-bold mb-2">
           {currentDelivery.status === "PICKUP"
             ? "Route to Restaurant"
             : "Route to Delivery"}
         </h2>
-        <p className="text-sm">
+        <p className="text-sm mb-2">
           {currentDelivery.status === "PICKUP"
             ? currentDelivery.restaurantLocation.address
             : currentDelivery.deliveryAddress.fullAddress}
         </p>
+
+        {/* Pickup Button */}
+        {currentDelivery.status === "PICKUP" && (
+          <button
+            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md text-sm"
+            onClick={handlePickup}
+          >
+            Pickup Order
+          </button>
+        )}
+        {/* Complete Delivery Button */}
+        {currentDelivery.status === "OUTFORDELIVERY" && (
+          <button
+            className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md text-sm w-full"
+            onClick={handleCompleteDelivery}
+          >
+            Complete Delivery
+          </button>
+        )}
       </div>
     </div>
   );
+}
+
+// Helper to sample N evenly spaced points from a path
+function samplePoints(path, count) {
+  if (!path || path.length <= count) return path;
+  const step = Math.floor(path.length / (count - 1));
+  const result = [];
+  for (let i = 0; i < path.length; i += step) {
+    result.push(path[i]);
+  }
+  if (result[result.length - 1] !== path[path.length - 1]) {
+    result.push(path[path.length - 1]);
+  }
+  return result;
 }

@@ -1,4 +1,3 @@
-// src/contexts/DeliveryContext.jsx
 import React, { createContext, useState, useEffect, useContext } from "react";
 
 const DeliveryContext = createContext(null);
@@ -6,12 +5,30 @@ const DeliveryContext = createContext(null);
 export const DeliveryProvider = ({ children }) => {
   const [currentDelivery, setCurrentDelivery] = useState(() => {
     const savedDelivery = localStorage.getItem("currentDelivery");
-    return savedDelivery ? JSON.parse(savedDelivery) : null;
+    if (savedDelivery) {
+      const parsed = JSON.parse(savedDelivery);
+      parsed.history = parsed.history.map((h) => ({
+        ...h,
+        timestamp: new Date(h.timestamp),
+      }));
+      return parsed;
+    }
+    return null;
   });
 
   useEffect(() => {
     if (currentDelivery) {
-      localStorage.setItem("currentDelivery", JSON.stringify(currentDelivery));
+      const serializableDelivery = {
+        ...currentDelivery,
+        history: currentDelivery.history.map((h) => ({
+          ...h,
+          timestamp: h.timestamp.toISOString(),
+        })),
+      };
+      localStorage.setItem(
+        "currentDelivery",
+        JSON.stringify(serializableDelivery)
+      );
     } else {
       localStorage.removeItem("currentDelivery");
     }
@@ -23,21 +40,20 @@ export const DeliveryProvider = ({ children }) => {
       status: "PICKUP",
       history: [{ status: "PICKUP", timestamp: new Date() }],
       restaurantLocation: {
-        lat: 6.829452,  
-        lng: 79.934029, 
-        address: "Restaurant Address"
+        lat: 6.829452,
+        lng: 79.934029,
+        address: "Restaurant Address",
       },
       deliveryAddress: {
-        lat: 6.820452,  
-        lng: 79.943029, 
-        fullAddress: "Delivery Address"
-      }
+        lat: 6.820452,
+        lng: 79.943029,
+        fullAddress: "Delivery Address",
+      },
     });
   };
 
   const updateDeliveryStatus = (newStatus) => {
     if (!["PICKUP", "OUTFORDELIVERY"].includes(newStatus)) return;
-
     setCurrentDelivery((prev) => ({
       ...prev,
       status: newStatus,
