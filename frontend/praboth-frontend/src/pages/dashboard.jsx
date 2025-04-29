@@ -8,17 +8,18 @@ import {
 
 import OrderList from "../components/orderlistcomponent";
 import { DeliveryProvider } from "../contexts/DeliveryContext";
+import {
+  fetchNotificationsByUser,
+  readnotification,
+  updateNotification,
+} from "../api/notificationapi";
 
 export default function Dashboard() {
   const navigate = useNavigate();
 
   // Example notifications state
-  const [notifications, setNotifications] = useState([
-    { id: 1, message: "Order #123 has been assigned to you.", read: false },
-    { id: 2, message: "Your profile was updated successfully.", read: false },
-    { id: 3, message: "New delivery available in your area.", read: true },
-  ]);
-  const unreadCount = notifications.filter((n) => !n.read).length;
+  const [notifications, setNotifications] = useState([]);
+  const unreadCount = notifications.filter((n) => !n.status).length;
 
   // Popup state
   const [showNotifications, setShowNotifications] = useState(false);
@@ -37,10 +38,16 @@ export default function Dashboard() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [showNotifications]);
 
-  // Mark all as read when opening popup
+  useEffect(() => {
+    const id = localStorage.getItem("wsDriverId");
+    fetchNotificationsByUser(id).then((res) => {
+      console.log("Notifications:", res);
+      setNotifications(res);
+    });
+  }, []);
+
   const handleOpenNotifications = () => {
-    setShowNotifications(true);
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    setShowNotifications((prev) => !prev);
   };
 
   const handleProfileClick = () => {
@@ -51,6 +58,17 @@ export default function Dashboard() {
     localStorage.removeItem("token");
     localStorage.removeItem("wsDriverId");
     navigate("/login");
+  };
+
+  const handleNotificationClick = async (notifId) => {
+    try {
+      await readnotification(notifId);
+      setNotifications((prev) =>
+        prev.map((n) => (n._id === notifId ? { ...n, status: true } : n))
+      );
+    } catch (err) {
+      console.error("Failed to mark notification as read:", err);
+    }
   };
 
   return (
@@ -96,16 +114,17 @@ export default function Dashboard() {
                       No notifications
                     </li>
                   ) : (
-                    notifications.map((notif) => (
+                    notifications.reverse().map((notif) => (
                       <li
-                        key={notif.id}
-                        className={`p-4 text-sm ${
-                          notif.read
+                        key={notif._id}
+                        onClick={() => handleNotificationClick(notif._id)}
+                        className={`p-4 text-sm cursor-pointer hover:bg-gray-100 ${
+                          notif.status
                             ? "text-gray-500"
                             : "text-gray-800 font-medium"
                         }`}
                       >
-                        {notif.message}
+                        {notif.message} : {notif.order}
                       </li>
                     ))
                   )}
@@ -135,7 +154,6 @@ export default function Dashboard() {
       <DeliveryProvider>
         <OrderList />
       </DeliveryProvider>
-
     </div>
   );
 }

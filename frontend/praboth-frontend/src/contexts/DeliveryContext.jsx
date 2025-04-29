@@ -1,4 +1,5 @@
 import React, { createContext, useState, useEffect, useContext } from "react";
+import { createNotification } from "../api/notificationapi";
 
 const DeliveryContext = createContext(null);
 
@@ -71,6 +72,8 @@ export const DeliveryProvider = ({ children }) => {
           lat: customer.location.latitude,
           lng: customer.location.longitude,
         },
+        restaurantId: restaurant._id,
+        customerId: customer._id,
       };
 
       console.log("New delivery accepted:", newDelivery);
@@ -91,9 +94,19 @@ export const DeliveryProvider = ({ children }) => {
     }));
   };
 
-  const completeDelivery = () => {
+  const completeDelivery = async () => {
+    const driver = localStorage.getItem("wsDriverId");
     localStorage.removeItem("currentDelivery");
     setCurrentDelivery(null);
+
+    const notificationData = {
+      user: driver,
+      user_role: "delivery_driver",
+      order: currentDelivery._id,
+      type: "order_complete",
+      message: "You have completed the delivery ",
+    };
+    await createNotification(notificationData);
   };
 
   return (
