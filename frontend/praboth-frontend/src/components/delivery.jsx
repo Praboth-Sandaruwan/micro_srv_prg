@@ -1,10 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
-import {
-  GoogleMap,
-  Marker,
-  Polyline,
-  useLoadScript,
-} from "@react-google-maps/api";
+import { GoogleMap, useLoadScript, Polyline } from "@react-google-maps/api";
+import { AdvancedMarkerElement } from "@googlemaps/marker-library"; // Import AdvancedMarkerElement
 import { useDelivery } from "../contexts/DeliveryContext";
 import { jwtDecode } from "jwt-decode";
 import { fetchConnectedDrivers } from "../api/driverapi";
@@ -27,10 +23,13 @@ export default function Delivery() {
   const [error, setError] = useState(null);
   const intervalRef = useRef();
   const mapRef = useRef();
+  const driverMarkerRef = useRef();
+  const destinationMarkerRef = useRef();
   const navigate = useNavigate();
 
   const { isLoaded } = useLoadScript({
     googleMapsApiKey: GOOGLE_MAPS_API_KEY,
+    libraries: ["marker"],
   });
 
   const getDriverId = () => {
@@ -86,22 +85,19 @@ export default function Delivery() {
   useEffect(() => {
     if (!currentDelivery) return;
 
-    const getDestination = () => {
-      if (currentDelivery.status === "PICKUP") {
-        return {
-          lat: currentDelivery.restaurantLocation.lat,
-          lng: currentDelivery.restaurantLocation.lng,
-        };
-      } else {
-        return {
-          lat: currentDelivery.deliveryAddress.lat,
-          lng: currentDelivery.deliveryAddress.lng,
-        };
-      }
-    };
+    const dest =
+      currentDelivery.status === "PICKUP"
+        ? {
+            lat: currentDelivery.restaurantLocation.lat,
+            lng: currentDelivery.restaurantLocation.lng,
+          }
+        : {
+            lat: currentDelivery.deliveryAddress.lat,
+            lng: currentDelivery.deliveryAddress.lng,
+          };
 
-    setDestination(getDestination());
-    setRoutePath([]);
+    setDestination(dest);
+    setRoutePath([]); // Clear previous routes
   }, [currentDelivery]);
 
   useEffect(() => {
@@ -133,23 +129,18 @@ export default function Delivery() {
 
   useEffect(() => {
     if (!navigator.geolocation) return;
-  
+
     const watchId = navigator.geolocation.watchPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
         setDriverLocation({ lat: latitude, lng: longitude });
-  
-        // Optionally, if you have a live driver marker
-        if (driverMarkerRef.current) {
-          driverMarkerRef.current.position = { lat: latitude, lng: longitude };
-        }
       },
       (error) => console.error(error),
       { enableHighAccuracy: true, maximumAge: 0, timeout: 5000 }
     );
-  
+
     return () => navigator.geolocation.clearWatch(watchId);
-  }, []);  
+  }, []);
 
   const handlePickup = () => {
     updateDeliveryStatus("OUTFORDELIVERY");
@@ -160,70 +151,87 @@ export default function Delivery() {
     navigate("/dashboard");
   };
 
-  if (!isLoaded) {
-    return <div>Loading Map...</div>;
-  }
+  if (!isLoaded) return <div>Loading Map...</div>;
 
-  if (!currentDelivery) {
+  if (!currentDelivery)
     return <div className="p-4 text-center">No active delivery</div>;
-  }
 
-  if (error) {
+  if (error)
     return <div className="p-4 text-center text-red-500">Error: {error}</div>;
-  }
 
-  if (!driverLocation) {
+  if (!driverLocation)
     return <div className="p-4 text-center">Getting location...</div>;
-  }
 
   return (
     <div className="h-[calc(100vh-4rem)] relative">
       <GoogleMap
         center={driverLocation}
-        zoom={13}
+        zoom={14}
         mapContainerStyle={containerStyle}
         onLoad={(map) => (mapRef.current = map)}
       >
-        <Marker position={driverLocation} label="You" />
-        {destination && <Marker position={destination} label="Destination" />}
+        {/* Driver Marker */}
+        {driverLocation && (
+          <AdvancedMarkerElement
+            position={driverLocation}
+            map={mapRef.current}
+            title="You"
+          />
+        )}
+        {/* Destination Marker */}
+        {destination && (
+          <AdvancedMarkerElement
+            position={destination}
+            map={mapRef.current}
+            title="Destination"
+          />
+        )}
+
+        {/* Route Polyline */}
         {routePath.length > 0 && (
           <Polyline
             path={routePath}
             options={{
-              strokeColor: "#007bff",
-              strokeOpacity: 0.8,
+              strokeColor: "#0ea5e9",
+              strokeOpacity: 0.9,
               strokeWeight: 5,
+              icons: [
+                {
+                  icon: {
+                    path: window.google.maps.SymbolPath.FORWARD_OPEN_ARROW,
+                  },
+                  offset: "100%",
+                },
+              ],
             }}
           />
         )}
       </GoogleMap>
 
-      {/* Top Left Panel */}
-      <div className="absolute top-4 left-4 bg-white p-4 rounded-lg shadow-lg z-[1000]">
-        <h2 className="text-lg font-bold mb-2">
+      {/* Top Left Control Panel */}
+      <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-md p-4 rounded-lg shadow-lg z-[1000] max-w-[300px]">
+        <h2 className="text-lg font-semibold mb-2 text-gray-800">
           {currentDelivery.status === "PICKUP"
             ? "Route to Restaurant"
             : "Route to Delivery"}
         </h2>
-        <p className="text-sm mb-2">
+        <p className="text-sm mb-4 text-gray-600">
           {currentDelivery.status === "PICKUP"
             ? currentDelivery.restaurantLocation.address
             : currentDelivery.deliveryAddress.fullAddress}
         </p>
 
-        {/* Pickup Button */}
         {currentDelivery.status === "PICKUP" && (
           <button
-            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md text-sm"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded w-full mb-2 transition"
             onClick={handlePickup}
           >
             Pickup Order
           </button>
         )}
-        {/* Complete Delivery Button */}
         {currentDelivery.status === "OUTFORDELIVERY" && (
           <button
-            className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md text-sm w-full"
+            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded w-full transition"
             onClick={handleCompleteDelivery}
           >
             Complete Delivery
