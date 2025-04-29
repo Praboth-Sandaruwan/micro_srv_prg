@@ -21,6 +21,7 @@ export const DeliveryProvider = ({ children }) => {
 
   useEffect(() => {
     if (currentDelivery) {
+      console.log("Saving current delivery to localStorage:", currentDelivery);
       const serializable = {
         ...currentDelivery,
         history: currentDelivery.history.map((h) => ({
@@ -66,31 +67,36 @@ export const DeliveryProvider = ({ children }) => {
         return;
       }
 
-      console.log("Restaurant:", restaurant);
+      console.log("Restaurant:", restaurant); ////// debug
       console.log("Customer:", customer);
       console.log("Delivery:", delivery);
 
-      setCurrentDelivery({
+      const newDelivery = {
         ...delivery,
         status: "PICKUP",
         history: [{ status: "PICKUP", timestamp: new Date() }],
         restaurantLocation: {
           lat: restaurant.location.latitude,
           lng: restaurant.location.longitude,
-          address: `${restaurant.address.street}, ${restaurant.address.city}`,
         },
         deliveryAddress: {
           lat: customer.location.latitude,
           lng: customer.location.longitude,
-          fullAddress: customer.address
-            ? `${customer.address.street}, ${customer.address.city}`
-            : "No address provided",
-        }
-      });
+        },
+      };
+
+      console.log("New Delivery:", newDelivery); ////// debug
+
+      setCurrentDelivery(newDelivery);
+
     } catch (err) {
       console.error("acceptDelivery error:", err);
     }
   };
+
+  useEffect(() => {
+    console.log("State updated:", currentDelivery);
+  }, [currentDelivery]);                               /////////////////////// debug
 
   const updateDeliveryStatus = (newStatus) => {
     if (!["PICKUP", "OUTFORDELIVERY"].includes(newStatus)) return;
