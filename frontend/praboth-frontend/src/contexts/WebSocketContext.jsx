@@ -69,7 +69,7 @@ export const WebSocketProvider = ({ children }) => {
         );
         closeSocket();
         const ws = new WebSocket(
-          `ws://localhost:8006/deliverydriver/api/v1/ws/drivers/${driverId}?token=${token}`
+          `ws://localhost:8016/deliverydriver/api/v1/ws/drivers/${driverId}?token=${token}`
         );
         socketRef.current = ws;
 
