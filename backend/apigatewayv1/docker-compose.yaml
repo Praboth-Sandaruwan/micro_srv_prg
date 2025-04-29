@@ -1,11 +1,17 @@
-version: '3.9'
 
 services:
   delivery-driver-service:
     image: prabothsandaruwan/delivery-driver-service:latest
     container_name: delivery-driver-service
     ports:
-      - "8005:8005"
+      - "8016:8016"
+    restart: unless-stopped
+
+  notification-service:
+    image: prabothsandaruwan/notification-service:latest
+    container_name: notification-service
+    ports:
+      - "8015:8015"
     restart: unless-stopped
 
   user-management-service:

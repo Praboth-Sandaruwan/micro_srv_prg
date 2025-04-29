@@ -3,7 +3,6 @@ from fastapi.security import OAuth2PasswordRequestForm
 from motor.motor_asyncio import AsyncIOMotorCollection
 from starlette import status
 
-from models.deliverydriver import DeliveryDriver
 from schemas.serializer import serializedict
 from services.adminauth import login_for_access_token_admin
 from services.deliverydriverservice import create
@@ -22,8 +21,9 @@ async def login(
     return await login_for_access_token(form_data, collection)
 
 
-@router.post(path="/auth/register", description="Register functionality for delivery drivers", status_code=status.HTTP_200_OK)
-async def create_driver(driver_data:dict):
+@router.post(path="/auth/register", description="Register functionality for delivery drivers",
+             status_code=status.HTTP_200_OK)
+async def create_driver(driver_data: dict):
     try:
         driver_id = await create(driver_data)
         driver_data["_id"] = driver_id
@@ -39,5 +39,3 @@ async def login(
         collection: AsyncIOMotorCollection = Depends(get_collection)
 ):
     return await login_for_access_token_admin(form_data, collection)
-
-

@@ -17,5 +17,8 @@ class ConnectedDrivers:
         if driver_id in self.drivers:
             del self.drivers[driver_id]
 
+    def get_connected_drivers(self):
+        return self.drivers
+
 
 connected_drivers = ConnectedDrivers()

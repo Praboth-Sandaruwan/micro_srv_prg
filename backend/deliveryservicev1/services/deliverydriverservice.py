@@ -59,7 +59,7 @@ async def update(driver_id: str, update_data: Dict) -> dict:
 
         existing_driver = await collection.find_one({"_id": ObjectId(driver_id)})
         if not existing_driver:
-            return {}
+            return {"message": "Driver not found"}
 
         result = await collection.update_one({"_id": ObjectId(driver_id)}, {"$set": update_data})
         if result.modified_count == 0:

@@ -1,7 +1,7 @@
 services:
   delivery-driver-service:
     build: .
-    container_name: "delivery-driver-service"
+    container_name: "notification-service"
     ports:
-      - "8016:8016"
+      - "8015:8015"
     restart: unless-stopped
