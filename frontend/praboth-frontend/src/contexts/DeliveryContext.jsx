@@ -82,8 +82,10 @@ export const DeliveryProvider = ({ children }) => {
         deliveryAddress: {
           lat: customer.location.latitude,
           lng: customer.location.longitude,
-          fullAddress: `${customer.address.street}, ${customer.address.city}`,
-        },
+          fullAddress: customer.address
+            ? `${customer.address.street}, ${customer.address.city}`
+            : "No address provided",
+        }
       });
     } catch (err) {
       console.error("acceptDelivery error:", err);
