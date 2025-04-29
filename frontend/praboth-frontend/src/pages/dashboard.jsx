@@ -41,8 +41,8 @@ export default function Dashboard() {
   useEffect(() => {
     const id = localStorage.getItem("wsDriverId");
     fetchNotificationsByUser(id).then((res) => {
-      console.log("Notifications:", res);
-      setNotifications(res);
+      const filtered = res?.filter(notification => notification.user);
+      setNotifications(filtered);
     });
   }, []);
 
