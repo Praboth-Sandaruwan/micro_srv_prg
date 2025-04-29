@@ -1,85 +1,55 @@
-import React, { useState } from "react";
-import { CheckCircleIcon, XMarkIcon } from "@heroicons/react/24/outline";
-import { useDelivery } from "../contexts/DeliveryContext.jsx";
+import React, { useState, useEffect } from "react";
+import { CheckCircleIcon } from "@heroicons/react/24/outline";
+import Popup from "./Popup";
 import { useNavigate } from "react-router-dom";
 
-// Simple reusable popup/modal
-function Popup({ open, onClose, children }) {
-  if (!open) return null;
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
-      <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6 relative">
-        <button
-          onClick={onClose}
-          className="absolute top-3 right-3 p-1 rounded hover:bg-gray-100"
-        >
-          <XMarkIcon className="h-5 w-5 text-gray-500" />
-        </button>
-        {children}
-      </div>
-    </div>
-  );
-}
-
 export default function OrderList() {
-  // Example orders
-  const [orders, setOrders] = useState([
-    {
-      id: 1,
-      customer: "Alice Smith",
-      address: "123 Main St, Springfield",
-      items: [
-        { name: "Burger", qty: 2 },
-        { name: "Fries", qty: 1 },
-      ],
-      total: 18.5,
-      status: "PENDING",
-    },
-    {
-      id: 2,
-      customer: "Bob Johnson",
-      address: "456 Oak Ave, Metropolis",
-      items: [
-        { name: "Pizza", qty: 1 },
-        { name: "Soda", qty: 2 },
-      ],
-      total: 22.0,
-      status: "PENDING",
-    },
-  ]);
-
+  const [orders, setOrders] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showDetails, setShowDetails] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const { acceptDelivery } = useDelivery();
   const navigate = useNavigate();
 
-  // Open order details popup
+
+  useEffect(() => {
+    const loadOrders = async () => {
+      const stored = localStorage.getItem("orders");
+      if (stored) {
+        setOrders(JSON.parse(stored));
+      } else {
+        const response = await fetch("/db/orders.json");
+        const data = await response.json();
+        localStorage.setItem("orders", JSON.stringify(data));
+        setOrders(data);
+      }
+    };
+    loadOrders();
+  }, []);
+
+
   const handleOrderClick = (order) => {
     setSelectedOrder(order);
     setShowDetails(true);
   };
 
-  // Accept order (show confirmation)
+
   const handleAccept = () => {
-    acceptDelivery(selectedOrder);
     setShowDetails(false);
     setShowConfirm(true);
-    navigate('/delivery')
-    
   };
 
-  // Confirm acceptance
+
   const confirmAccept = () => {
-    setOrders((prev) =>
-      prev.map((order) =>
-        order.id === selectedOrder.id
-          ? { ...order, status: "CONFIRMED" }
-          : order
-      )
+    const updatedOrders = orders.map((order) =>
+      order._id === selectedOrder._id
+        ? { ...order, status: "CONFIRMED" }
+        : order
     );
+    setOrders(updatedOrders);
+    localStorage.setItem("orders", JSON.stringify(updatedOrders));
     setShowConfirm(false);
     setSelectedOrder(null);
+    navigate("/delivery");
   };
 
   return (
@@ -88,7 +58,7 @@ export default function OrderList() {
       <div className="space-y-4">
         {orders.map((order) => (
           <div
-            key={order.id}
+            key={order._id}
             onClick={() => handleOrderClick(order)}
             className={`border rounded-lg p-4 cursor-pointer transition hover:shadow-lg ${
               order.status === "CONFIRMED"
@@ -98,8 +68,10 @@ export default function OrderList() {
           >
             <div className="flex justify-between items-center">
               <div>
-                <div className="font-semibold">{order.customer}</div>
-                <div className="text-gray-500 text-sm">{order.address}</div>
+                <div className="font-semibold">Order #{order._id}</div>
+                <div className="text-gray-500 text-sm">
+                  {order.deliveryAddress.street}, {order.deliveryAddress.city}
+                </div>
                 <div className="text-xs text-gray-400 mt-1">
                   {order.items.length} items &middot; ${order.total.toFixed(2)}
                 </div>
@@ -118,25 +90,26 @@ export default function OrderList() {
         ))}
       </div>
 
-      {/* Order Details Popup */}
+
       <Popup open={showDetails} onClose={() => setShowDetails(false)}>
         {selectedOrder && (
           <div>
             <h3 className="text-xl font-bold mb-3">Order Details</h3>
             <div className="mb-2">
-              <span className="font-semibold">Customer:</span>{" "}
-              {selectedOrder.customer}
+              <span className="font-semibold">Order ID:</span>{" "}
+              {selectedOrder._id}
             </div>
             <div className="mb-2">
               <span className="font-semibold">Address:</span>{" "}
-              {selectedOrder.address}
+              {selectedOrder.deliveryAddress.street},{" "}
+              {selectedOrder.deliveryAddress.city}
             </div>
             <div className="mb-2">
               <span className="font-semibold">Items:</span>
               <ul className="list-disc ml-6 mt-1">
                 {selectedOrder.items.map((item, i) => (
                   <li key={i}>
-                    {item.qty} &times; {item.name}
+                    {item.quantity} × {item.name}
                   </li>
                 ))}
               </ul>
@@ -158,15 +131,12 @@ export default function OrderList() {
         )}
       </Popup>
 
-      {/* Confirm Accept Popup */}
+
       <Popup open={showConfirm} onClose={() => setShowConfirm(false)}>
         {selectedOrder && (
           <div>
             <h3 className="text-xl font-bold mb-4">Confirm Acceptance</h3>
-            <p>
-              Are you sure you want to accept the order for{" "}
-              <span className="font-semibold">{selectedOrder.customer}</span>?
-            </p>
+            <p>Are you sure you want to accept Order #{selectedOrder._id}?</p>
             <div className="flex justify-end gap-3 mt-6">
               <button
                 onClick={() => setShowConfirm(false)}
@@ -178,7 +148,7 @@ export default function OrderList() {
                 onClick={confirmAccept}
                 className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center"
               >
-                <CheckCircleIcon className="h-5 w-5 mr-1" />
+                <CheckCircleIcon className="h-4 w-4 mr-1" />
                 Confirm
               </button>
             </div>
