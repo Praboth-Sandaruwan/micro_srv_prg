@@ -1,18 +1,27 @@
 import React, { useEffect, useState, useRef } from "react";
-import { GoogleMap, useLoadScript, Polyline } from "@react-google-maps/api";
-import { AdvancedMarkerElement } from "@googlemaps/marker-library"; // Import AdvancedMarkerElement
+import {
+  GoogleMap,
+  useLoadScript,
+  Polyline,
+  Marker,
+} from "@react-google-maps/api";
 import { useDelivery } from "../contexts/DeliveryContext";
 import { jwtDecode } from "jwt-decode";
 import { fetchConnectedDrivers } from "../api/driverapi";
 import { fetchRouteFromGoMaps, snapToNearestRoad } from "../api/gomapsapi";
 import { useNavigate } from "react-router-dom";
-
-const GOOGLE_MAPS_API_KEY = "AIzaSyDR5IF3eFb_qb_0v-W-E299o8Z0zu_jd08";
+import DriverMarker from "../components/DriverMarker";
+import DestinationMarker from "../components/DestinationMarker";
+import { samplePoints } from "../utils/MapHelper";
 
 const containerStyle = {
   width: "100%",
   height: "100%",
 };
+
+const libraries = ["places", "geometry"];
+
+const GOOGLE_MAPS_API_KEY = "AIzaSyDR5IF3eFb_qb_0v-W-E299o8Z0zu_jd08";
 
 export default function Delivery() {
   const { currentDelivery, updateDeliveryStatus, completeDelivery } =
@@ -21,47 +30,42 @@ export default function Delivery() {
   const [destination, setDestination] = useState(null);
   const [routePath, setRoutePath] = useState([]);
   const [error, setError] = useState(null);
-  const intervalRef = useRef();
-  const mapRef = useRef();
-  const driverMarkerRef = useRef();
-  const destinationMarkerRef = useRef();
   const navigate = useNavigate();
 
-  const { isLoaded } = useLoadScript({
+  const intervalRef = useRef();
+  const mapRef = useRef();
+
+  const { isLoaded, loadError } = useLoadScript({
     googleMapsApiKey: GOOGLE_MAPS_API_KEY,
-    libraries: ["marker"],
+    libraries,
   });
 
-  const getDriverId = () => {
+  useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
       window.location.href = "/login";
-      return null;
+      return;
     }
+
+    let driverId;
     try {
       const decoded = jwtDecode(token);
-      return decoded.id;
+      driverId = decoded.id;
     } catch (error) {
-      console.error("Error decoding token:", error);
-      return null;
+      console.error("Invalid token:", error);
+      window.location.href = "/login";
+      return;
     }
-  };
-
-  useEffect(() => {
-    const driverId = getDriverId();
-    if (!driverId) return;
 
     const pollDriverLocation = async () => {
       try {
         const response = await fetchConnectedDrivers();
-        if (!response.data) throw new Error("Failed to fetch driver location");
+        if (!response.data) throw new Error("Driver location fetch failed.");
 
-        const drivers = Object.entries(response.data).map(
-          ([driverId, location]) => ({
-            driverId,
-            ...location,
-          })
-        );
+        const drivers = Object.entries(response.data).map(([id, location]) => ({
+          driverId: id,
+          ...location,
+        }));
 
         const currentDriver = drivers.find((d) => d.driverId === driverId);
         if (currentDriver) {
@@ -71,8 +75,8 @@ export default function Delivery() {
           });
         }
       } catch (error) {
-        setError(error.message);
         console.error("Polling error:", error);
+        setError(error.message);
       }
     };
 
@@ -85,25 +89,17 @@ export default function Delivery() {
   useEffect(() => {
     if (!currentDelivery) return;
 
-    const dest =
+    const targetLocation =
       currentDelivery.status === "PICKUP"
-        ? {
-            lat: currentDelivery.restaurantLocation.lat,
-            lng: currentDelivery.restaurantLocation.lng,
-          }
-        : {
-            lat: currentDelivery.deliveryAddress.lat,
-            lng: currentDelivery.deliveryAddress.lng,
-          };
+        ? currentDelivery.restaurantLocation
+        : currentDelivery.deliveryAddress;
 
-    setDestination(dest);
-    setRoutePath([]); // Clear previous routes
+    setDestination({ lat: targetLocation.lat, lng: targetLocation.lng });
   }, [currentDelivery]);
 
   useEffect(() => {
     const fetchRoute = async () => {
       if (!driverLocation || !destination) return;
-
       try {
         const routeData = await fetchRouteFromGoMaps(
           driverLocation,
@@ -119,8 +115,8 @@ export default function Delivery() {
           }))
         );
       } catch (error) {
+        console.error("Route error:", error);
         setError(error.message);
-        console.error("Error fetching/snapping route:", error);
       }
     };
 
@@ -132,11 +128,19 @@ export default function Delivery() {
 
     const watchId = navigator.geolocation.watchPosition(
       (position) => {
-        const { latitude, longitude } = position.coords;
-        setDriverLocation({ lat: latitude, lng: longitude });
+        setDriverLocation({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        });
       },
-      (error) => console.error(error),
-      { enableHighAccuracy: true, maximumAge: 0, timeout: 5000 }
+      (error) => {
+        console.error("Geolocation watch error:", error);
+      },
+      {
+        enableHighAccuracy: true,
+        maximumAge: 0,
+        timeout: 15000, 
+      }
     );
 
     return () => navigator.geolocation.clearWatch(watchId);
@@ -151,107 +155,75 @@ export default function Delivery() {
     navigate("/dashboard");
   };
 
-  if (!isLoaded) return <div>Loading Map...</div>;
-
+  if (loadError)
+    return (
+      <div className="p-4 text-center text-red-500">
+        Map load error: {loadError.message}
+      </div>
+    );
+  if (!isLoaded) return <div className="p-4 text-center">Loading map...</div>;
   if (!currentDelivery)
-    return <div className="p-4 text-center">No active delivery</div>;
-
+    return <div className="p-4 text-center">No active delivery.</div>;
   if (error)
     return <div className="p-4 text-center text-red-500">Error: {error}</div>;
-
-  if (!driverLocation)
-    return <div className="p-4 text-center">Getting location...</div>;
 
   return (
     <div className="h-[calc(100vh-4rem)] relative">
       <GoogleMap
-        center={driverLocation}
+        center={driverLocation || { lat: 0, lng: 0 }}
         zoom={14}
         mapContainerStyle={containerStyle}
+        mapId="" // No Map ID used
         onLoad={(map) => (mapRef.current = map)}
+        options={{
+          disableDefaultUI: true,
+          zoomControl: true,
+        }}
       >
-        {/* Driver Marker */}
-        {driverLocation && (
-          <AdvancedMarkerElement
-            position={driverLocation}
-            map={mapRef.current}
-            title="You"
-          />
-        )}
-        {/* Destination Marker */}
-        {destination && (
-          <AdvancedMarkerElement
-            position={destination}
-            map={mapRef.current}
-            title="Destination"
-          />
-        )}
-
-        {/* Route Polyline */}
+        {driverLocation && <DriverMarker position={driverLocation} />}
+        {destination && <DestinationMarker position={destination} />}
         {routePath.length > 0 && (
           <Polyline
             path={routePath}
             options={{
-              strokeColor: "#0ea5e9",
-              strokeOpacity: 0.9,
+              strokeColor: "#00bfff",
+              strokeOpacity: 0.8,
               strokeWeight: 5,
-              icons: [
-                {
-                  icon: {
-                    path: window.google.maps.SymbolPath.FORWARD_OPEN_ARROW,
-                  },
-                  offset: "100%",
-                },
-              ],
+              geodesic: true,
             }}
           />
         )}
       </GoogleMap>
 
-      {/* Top Left Control Panel */}
-      <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-md p-4 rounded-lg shadow-lg z-[1000] max-w-[300px]">
-        <h2 className="text-lg font-semibold mb-2 text-gray-800">
+      {/* Info Box */}
+      <div className="absolute top-4 left-4 bg-white p-4 rounded-lg shadow-xl max-w-[300px] z-[1000]">
+        <h2 className="text-xl font-semibold mb-2">
           {currentDelivery.status === "PICKUP"
-            ? "Route to Restaurant"
-            : "Route to Delivery"}
+            ? "Going to Restaurant"
+            : "Going to Customer"}
         </h2>
-        <p className="text-sm mb-4 text-gray-600">
+        <p className="text-gray-700 mb-4 text-sm">
           {currentDelivery.status === "PICKUP"
             ? currentDelivery.restaurantLocation.address
             : currentDelivery.deliveryAddress.fullAddress}
         </p>
-
-        {currentDelivery.status === "PICKUP" && (
-          <button
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded w-full mb-2 transition"
-            onClick={handlePickup}
-          >
-            Pickup Order
-          </button>
-        )}
-        {currentDelivery.status === "OUTFORDELIVERY" && (
-          <button
-            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded w-full transition"
-            onClick={handleCompleteDelivery}
-          >
-            Complete Delivery
-          </button>
-        )}
+        <button
+          onClick={
+            currentDelivery.status === "PICKUP"
+              ? handlePickup
+              : handleCompleteDelivery
+          }
+          className={`py-2 px-4 w-full rounded ${
+            currentDelivery.status === "PICKUP"
+              ? "bg-blue-600 hover:bg-blue-700"
+              : "bg-green-600 hover:bg-green-700"
+          } text-white`}
+        >
+          {currentDelivery.status === "PICKUP"
+            ? "Pickup Order"
+            : "Complete Delivery"}
+        </button>
       </div>
     </div>
   );
-}
-
-// Helper to sample N evenly spaced points from a path
-function samplePoints(path, count) {
-  if (!path || path.length <= count) return path;
-  const step = Math.floor(path.length / (count - 1));
-  const result = [];
-  for (let i = 0; i < path.length; i += step) {
-    result.push(path[i]);
-  }
-  if (result[result.length - 1] !== path[path.length - 1]) {
-    result.push(path[path.length - 1]);
-  }
-  return result;
 }
