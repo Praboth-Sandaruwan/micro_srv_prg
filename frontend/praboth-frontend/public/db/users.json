@@ -8,8 +8,8 @@
     "role": "customer",
     "createdAt": "2025-04-29T11:30:00Z",
     "location": {
-      "latitude": 6.9271,
-      "longitude": 79.8612
+      "latitude": 6.820452,
+      "longitude": 79.943029
     }
   },
   {
@@ -21,8 +21,8 @@
     "role": "customer",
     "createdAt": "2025-04-29T11:32:00Z",
     "location": {
-      "latitude": 7.2906,
-      "longitude": 80.6337
+      "latitude": 6.820452,
+      "longitude": 79.943029
     }
   },
   {
@@ -34,8 +34,8 @@
     "role": "restaurant",
     "createdAt": "2025-04-29T11:35:00Z",
     "location": {
-      "latitude": 6.0328,
-      "longitude": 80.2168
+      "latitude": 6.820452,
+      "longitude": 79.943029
     }
   },
   {
@@ -47,8 +47,8 @@
     "role": "admin",
     "createdAt": "2025-04-29T11:40:00Z",
     "location": {
-      "latitude": 6.9147,
-      "longitude": 79.9763
+      "latitude": 6.820452,
+      "longitude": 79.943029
     }
   }
 ]
