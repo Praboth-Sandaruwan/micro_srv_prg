@@ -33,7 +33,7 @@ const register = async (req, res) => {
     });
   }
 
-  let { name, email, password, phoneNumber } = req.body;
+  let { name, email, password, phoneNumber, location  } = req.body;
 
   try {
     // Standardize email
@@ -62,7 +62,11 @@ const register = async (req, res) => {
       email,
       password,
       phoneNumber,
-      role: 'customer'
+      role: 'customer',
+      location: {
+        latitude: parseFloat(location.latitude),
+        longitude: parseFloat(location.longitude)
+      }
     });
     
     return res.status(httpStatus.CREATED).json({
@@ -150,7 +154,8 @@ const getProfile = async (req, res) => {
       name: user.name,
       email: user.email,
       phoneNumber: user.phoneNumber,
-      role: user.role
+      role: user.role,
+      location: user.location
     });
   } catch (error) {
     console.error('Get profile error:', error);

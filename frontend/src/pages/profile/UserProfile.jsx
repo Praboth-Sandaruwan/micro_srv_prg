@@ -10,7 +10,7 @@ import {
   Avatar,
   Input
 } from '@material-tailwind/react';
-import { PencilIcon, CheckIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { PencilIcon, CheckIcon, XMarkIcon, MapPinIcon } from '@heroicons/react/24/outline';
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
 import { showToast } from '../../components/ui/Toast';
 import { useAuth } from '../../context/AuthContext';
@@ -24,7 +24,11 @@ const UserProfile = () => {
   const [profileData, setProfileData] = useState({
     name: '',
     email: '',
-    phoneNumber: ''
+    phoneNumber: '',
+    location: {
+      latitude: '',
+      longitude: ''
+    }
   });
   const [errors, setErrors] = useState({});
 
@@ -33,23 +37,51 @@ const UserProfile = () => {
       setProfileData({
         name: user.name || '',
         email: user.email || '',
-        phoneNumber: user.phoneNumber || ''
+        phoneNumber: user.phoneNumber || '',
+        location: {
+          latitude: user.location?.latitude || '',
+          longitude: user.location?.longitude || ''
+        }
       });
     }
   }, [user]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setProfileData({
-      ...profileData,
-      [name]: value
-    });
-    // Clear error when user starts typing
-    if (errors[name]) {
-      setErrors({
-        ...errors,
-        [name]: ''
+    
+    // Handle nested location object
+    if (name === 'latitude' || name === 'longitude') {
+      setProfileData({
+        ...profileData,
+        location: {
+          ...profileData.location,
+          [name]: value
+        }
       });
+      
+      // Clear error when user starts typing
+      if (errors.location && errors.location[name]) {
+        setErrors({
+          ...errors,
+          location: {
+            ...errors.location,
+            [name]: ''
+          }
+        });
+      }
+    } else {
+      setProfileData({
+        ...profileData,
+        [name]: value
+      });
+      
+      // Clear error when user starts typing
+      if (errors[name]) {
+        setErrors({
+          ...errors,
+          [name]: ''
+        });
+      }
     }
   };
 
@@ -70,45 +102,92 @@ const UserProfile = () => {
     } else if (!/^\d{10}$/.test(profileData.phoneNumber)) {
       newErrors.phoneNumber = 'Phone number must be 10 digits';
     }
+    
+    // Location validation
+    newErrors.location = {};
+    
+    // Latitude validation
+    if (profileData.location.latitude === '') {
+      newErrors.location.latitude = 'Latitude is required';
+    } else {
+      const lat = parseFloat(profileData.location.latitude);
+      if (isNaN(lat) || lat < -90 || lat > 90) {
+        newErrors.location.latitude = 'Latitude must be between -90 and 90';
+      }
+    }
+    
+    // Longitude validation
+    if (profileData.location.longitude === '') {
+      newErrors.location.longitude = 'Longitude is required';
+    } else {
+      const lng = parseFloat(profileData.location.longitude);
+      if (isNaN(lng) || lng < -180 || lng > 180) {
+        newErrors.location.longitude = 'Longitude must be between -180 and 180';
+      }
+    }
+    
+    // Clean up empty objects
+    if (Object.keys(newErrors.location).length === 0) {
+      delete newErrors.location;
+    }
   
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async () => {
-  if (!validateForm()) return;
+    if (!validateForm()) return;
 
-  try {
-    setSaving(true);
-    // 1. Send update request
-    const { data } = await api.put(`/users/${user._id}`, profileData);
+    try {
+      setSaving(true);
+      
+      // Convert latitude and longitude to numbers
+      const dataToSubmit = {
+        ...profileData,
+        location: {
+          latitude: parseFloat(profileData.location.latitude),
+          longitude: parseFloat(profileData.location.longitude)
+        }
+      };
+      
+      // 1. Send update request
+      const { data } = await api.put(`/users/${user._id}`, dataToSubmit);
 
-    // 2. OPTION A: If your authService.getProfile() updates the context properly
-    const updatedUser = await authService.getProfile();
-    
-    // 3. Update local state to match the response
-    setProfileData({
-      name: updatedUser.name,
-      email: updatedUser.email,
-      phoneNumber: updatedUser.phoneNumber
-    });
+      // 2. OPTION A: If your authService.getProfile() updates the context properly
+      const updatedUser = await authService.getProfile();
+      
+      // 3. Update local state to match the response
+      setProfileData({
+        name: updatedUser.name,
+        email: updatedUser.email,
+        phoneNumber: updatedUser.phoneNumber,
+        location: {
+          latitude: updatedUser.location?.latitude || '',
+          longitude: updatedUser.location?.longitude || ''
+        }
+      });
 
-    showToast.success(data.message || 'Profile updated successfully');
-    setIsEditing(false);
-    
-  } catch (error) {
-    console.error('Error updating profile:', error);
-    showToast.error(error.response?.data?.message || 'Failed to update profile');
-  } finally {
-    setSaving(false);
-  }
-};
+      showToast.success(data.message || 'Profile updated successfully');
+      setIsEditing(false);
+      
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      showToast.error(error.response?.data?.message || 'Failed to update profile');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const cancelEdit = () => {
     // Reset form data to current user data
     setProfileData({
       name: user.name || '',
       email: user.email || '',
-      phoneNumber: user.phoneNumber || ''
+      phoneNumber: user.phoneNumber || '',
+      location: {
+        latitude: user.location?.latitude || '',
+        longitude: user.location?.longitude || ''
+      }
     });
     setErrors({});
     setIsEditing(false);
@@ -135,6 +214,11 @@ const UserProfile = () => {
       .join('')
       .toUpperCase()
       .slice(0, 2);
+  };
+
+  // Format coordinates to 6 decimal places for display
+  const formatCoordinate = (coord) => {
+    return typeof coord === 'number' ? coord.toFixed(6) : 'Not set';
   };
 
   return (
@@ -229,12 +313,12 @@ const UserProfile = () => {
                   label="Phone Number"
                   name="phoneNumber"
                   value={profileData.phoneNumber}
-  onChange={(e) => {
-    // Only allow numbers
-    const value = e.target.value.replace(/\D/g, '');
-    e.target.value = value; // Update the input value
-    handleChange(e); // Call the original handleChange
-  }}
+                  onChange={(e) => {
+                    // Only allow numbers
+                    const value = e.target.value.replace(/\D/g, '');
+                    e.target.value = value; // Update the input value
+                    handleChange(e); // Call the original handleChange
+                  }}
                   size="lg"
                   error={!!errors.phoneNumber}
                 />
@@ -247,6 +331,59 @@ const UserProfile = () => {
                     {errors.phoneNumber}
                   </Typography>
                 )}
+              </div>
+
+              <div>
+                <Typography
+                  variant="small"
+                  color="blue-gray"
+                  className="font-semibold"
+                  style={{ marginBottom: '0.5rem', fontSize: '0.75rem', textTransform: 'uppercase', color: '#64748b' }}
+                >
+                  Location
+                </Typography>
+                <div style={{ display: 'flex', gap: '1rem' }}>
+                  <div style={{ flex: 1 }}>
+                    <Input
+                      type="text"
+                      label="Latitude"
+                      name="latitude"
+                      value={profileData.location.latitude}
+                      onChange={handleChange}
+                      size="lg"
+                      error={!!(errors.location && errors.location.latitude)}
+                    />
+                    {errors.location && errors.location.latitude && (
+                      <Typography
+                        variant="small"
+                        color="red"
+                        style={{ marginTop: '0.25rem' }}
+                      >
+                        {errors.location.latitude}
+                      </Typography>
+                    )}
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <Input
+                      type="text"
+                      label="Longitude"
+                      name="longitude"
+                      value={profileData.location.longitude}
+                      onChange={handleChange}
+                      size="lg"
+                      error={!!(errors.location && errors.location.longitude)}
+                    />
+                    {errors.location && errors.location.longitude && (
+                      <Typography
+                        variant="small"
+                        color="red"
+                        style={{ marginTop: '0.25rem' }}
+                      >
+                        {errors.location.longitude}
+                      </Typography>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
           ) : (
@@ -291,6 +428,24 @@ const UserProfile = () => {
                 <Typography variant="paragraph" style={{ color: '#334155' }}>
                   {user?.phoneNumber}
                 </Typography>
+              </div>
+
+              <div>
+                <Typography
+                  variant="small"
+                  color="blue-gray"
+                  className="font-semibold"
+                  style={{ marginBottom: '0.25rem', fontSize: '0.75rem', textTransform: 'uppercase', color: '#64748b' }}
+                >
+                  Location
+                </Typography>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <MapPinIcon style={{ width: '16px', height: '16px', color: '#64748b' }} />
+                  <Typography variant="paragraph" style={{ color: '#334155' }}>
+                    Lat: {formatCoordinate(user?.location?.latitude)}, 
+                    Long: {formatCoordinate(user?.location?.longitude)}
+                  </Typography>
+                </div>
               </div>
               
               <div>

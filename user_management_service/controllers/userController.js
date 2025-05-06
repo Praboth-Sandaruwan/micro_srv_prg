@@ -57,12 +57,19 @@ const updateUser = async (req, res) => {
       return res.status(httpStatus.FORBIDDEN).json({ message: ERROR_MESSAGES.UNAUTHORIZED });
     }
     
-    const { name, email, phoneNumber } = req.body;
+    const { name, email, phoneNumber, location  } = req.body;
     
     // Update user fields
     if (name) user.name = name;
     if (email) user.email = email.toLowerCase();
     if (phoneNumber) user.phoneNumber = phoneNumber;
+    // Update location if provided
+    if (location && location.latitude !== undefined && location.longitude !== undefined) {
+      user.location = {
+        latitude: parseFloat(location.latitude),
+        longitude: parseFloat(location.longitude)
+      };
+    }
     
     await user.save();
     
@@ -73,7 +80,8 @@ const updateUser = async (req, res) => {
         name: user.name,
         email: user.email,
         phoneNumber: user.phoneNumber,
-        role: user.role
+        role: user.role,
+        location: user.location
       }
     });
   } catch (error) {

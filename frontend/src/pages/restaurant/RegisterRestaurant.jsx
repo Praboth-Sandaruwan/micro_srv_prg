@@ -14,6 +14,7 @@ const cuisineTypes = [
 const RegisterRestaurant = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [locationLoading, setLocationLoading] = useState(false);
   const [imagePreview, setImagePreview] = useState("");
   const [formData, setFormData] = useState({
     name: '',
@@ -23,6 +24,10 @@ const RegisterRestaurant = () => {
       city: '',
       state: '',
       zipCode: ''
+    },
+    location: {
+      latitude: '',
+      longitude: ''
     },
     contactNumber: '',
     email: '',
@@ -45,6 +50,19 @@ const RegisterRestaurant = () => {
     if (!formData.address.city.trim()) newErrors.city = 'City is required';
     if (!formData.address.state.trim()) newErrors.state = 'State is required';
     if (!formData.address.zipCode.trim()) newErrors.zipCode = 'ZIP code is required';
+    
+    // Validate location
+    if (!formData.location.latitude) {
+      newErrors.latitude = 'Latitude is required';
+    } else if (isNaN(parseFloat(formData.location.latitude))) {
+      newErrors.latitude = 'Latitude must be a valid number';
+    }
+    
+    if (!formData.location.longitude) {
+      newErrors.longitude = 'Longitude is required';
+    } else if (isNaN(parseFloat(formData.location.longitude))) {
+      newErrors.longitude = 'Longitude must be a valid number';
+    }
     
     if (!formData.contactNumber.trim()) {
       newErrors.contactNumber = 'Contact number is required';
@@ -109,6 +127,59 @@ const RegisterRestaurant = () => {
     });
   };
 
+  const handleGetCurrentLocation = () => {
+    setLocationLoading(true);
+    
+    if (!navigator.geolocation) {
+      showToast.error('Geolocation is not supported by your browser');
+      setLocationLoading(false);
+      return;
+    }
+    
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        
+        setFormData({
+          ...formData,
+          location: {
+            latitude: latitude.toFixed(6),
+            longitude: longitude.toFixed(6)
+          }
+        });
+        
+        setLocationLoading(false);
+        showToast.success('Location coordinates retrieved successfully');
+      },
+      (error) => {
+        console.error('Geolocation error:', error);
+        let errorMessage = 'Failed to get your location';
+        
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            errorMessage = 'Location permission denied. Please enable location access.';
+            break;
+          case error.POSITION_UNAVAILABLE:
+            errorMessage = 'Location information is unavailable';
+            break;
+          case error.TIMEOUT:
+            errorMessage = 'The request to get location timed out';
+            break;
+          default:
+            errorMessage = 'An unknown error occurred getting your location';
+        }
+        
+        showToast.error(errorMessage);
+        setLocationLoading(false);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+      }
+    );
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -120,12 +191,27 @@ const RegisterRestaurant = () => {
     setLoading(true);
     
     try {
-      const response = await api.post('/restaurants', formData);
+      // Convert location values to numbers before sending
+      const dataToSend = {
+        ...formData,
+        location: {
+          latitude: parseFloat(formData.location.latitude),
+          longitude: parseFloat(formData.location.longitude)
+        }
+      };
+      
+      const response = await api.post('/restaurants', dataToSend);
       showToast.success(response.data.message || 'Restaurant registered successfully');
       navigate('/restaurant/dashboard');
     } catch (error) {
       console.error('Registration error:', error);
-      showToast.error(error.response?.data?.message || 'Failed to register restaurant');
+      
+      // Check if it's a file size error
+      if (error.response?.status === 413) {
+        showToast.error('Image file is too large. Please use a smaller image (less than 1MB).');
+      } else {
+        showToast.error(error.response?.data?.message || 'Failed to register restaurant');
+      }
     } finally {
       setLoading(false);
     }
@@ -203,6 +289,9 @@ const RegisterRestaurant = () => {
                   </div>
                 )}
                 {errors.image && <span style={{ color: 'red', fontSize: '12px' }}>{errors.image}</span>}
+                <small style={{ display: 'block', color: '#666', marginTop: '5px' }}>
+                  Please use a small image file (less than 1MB) to avoid upload issues.
+                </small>
               </div>
 
               <div style={{ marginTop: '5px', marginBottom: '15px' }}>
@@ -229,6 +318,66 @@ const RegisterRestaurant = () => {
                   style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid #ccc', marginTop: '5px', marginBottom: '5px' }}
                 />
                 {errors.contactNumber && <span style={{ color: 'red', fontSize: '12px' }}>{errors.contactNumber}</span>}
+              </div>
+
+              <div style={{ marginTop: '5px', marginBottom: '15px' }}>
+                <h3 style={{ marginBottom: '10px' }}>Location Coordinates</h3>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                  <span>Enter coordinates or use auto-fill:</span>
+                  <button
+                    type="button"
+                    onClick={handleGetCurrentLocation}
+                    disabled={locationLoading}
+                    style={{ 
+                      backgroundColor: '#4CAF50', 
+                      color: 'white', 
+                      border: 'none',
+                      borderRadius: '5px',
+                      padding: '8px 15px',
+                      cursor: locationLoading ? 'not-allowed' : 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '5px'
+                    }}
+                  >
+                    {locationLoading && <LoadingSpinner size="sm" />}
+                    Auto-fill My Location
+                  </button>
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '15px', marginBottom: '15px' }}>
+                  <div style={{ flex: '1 1 45%' }}>
+                    <label htmlFor="latitude">Latitude</label>
+                    <input
+                      id="latitude"
+                      type="number"
+                      step="any"
+                      name="location.latitude"
+                      value={formData.location.latitude}
+                      onChange={handleChange}
+                      placeholder="e.g. 37.7749"
+                      style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid #ccc', marginTop: '5px', marginBottom: '5px' }}
+                    />
+                    {errors.latitude && <span style={{ color: 'red', fontSize: '12px' }}>{errors.latitude}</span>}
+                  </div>
+                  
+                  <div style={{ flex: '1 1 45%' }}>
+                    <label htmlFor="longitude">Longitude</label>
+                    <input
+                      id="longitude"
+                      type="number"
+                      step="any"
+                      name="location.longitude"
+                      value={formData.location.longitude}
+                      onChange={handleChange}
+                      placeholder="e.g. -122.4194"
+                      style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid #ccc', marginTop: '5px', marginBottom: '5px' }}
+                    />
+                    {errors.longitude && <span style={{ color: 'red', fontSize: '12px' }}>{errors.longitude}</span>}
+                  </div>
+                </div>
+                <small style={{ display: 'block', color: '#666', marginTop: '5px' }}>
+                  Enter the geographic coordinates of your restaurant location or use the auto-fill button to get your current location.
+                </small>
               </div>
 
               <div style={{ marginTop: '5px', marginBottom: '15px' }}>

@@ -20,6 +20,20 @@ const UserSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  location: {
+    latitude: {
+      type: Number,
+      required: [true, 'Latitude is required'],
+      min: -90,
+      max: 90
+    },
+    longitude: {
+      type: Number,
+      required: [true, 'Longitude is required'],
+      min: -180,
+      max: 180
+    }
+  },
   role: {  // Changed from roles to role
     type: String,
     default: 'customer',

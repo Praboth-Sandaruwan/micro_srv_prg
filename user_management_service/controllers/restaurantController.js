@@ -21,8 +21,14 @@ const registerRestaurant = async (req, res) => {
     email, 
     operatingHours, 
     cuisine,
+    location, // Extract location field
     image 
   } = req.body;
+
+  // Validate location data is present
+  if (!location || typeof location.latitude !== 'number' || typeof location.longitude !== 'number') {
+    return res.status(400).json({ message: 'Valid location coordinates are required' });
+  }
 
   try {
     const restaurantExists = await Restaurant.findOne({ 
@@ -44,7 +50,8 @@ const registerRestaurant = async (req, res) => {
       owner: req.user._id,
       operatingHours,
       cuisine,
-      image: image || 'default-restaurant.jpg', // 👈 Handle image here
+      location, // Include location in restaurant creation
+      image: image || 'default-restaurant.jpg',
       isVerified: false,
       status: 'pending'
     });
@@ -61,7 +68,6 @@ const registerRestaurant = async (req, res) => {
     return res.status(500).json({ message: ERROR_MESSAGES.SERVER_ERROR });
   }
 };
-
 
 // Get all restaurants (for customers)
 const getAllRestaurants = async (req, res) => {
