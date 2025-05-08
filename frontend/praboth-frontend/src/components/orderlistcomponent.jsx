@@ -3,6 +3,7 @@ import { CheckCircleIcon } from "@heroicons/react/24/outline";
 import Popup from "./Popup";
 import { useNavigate } from "react-router-dom";
 import { useDelivery } from "../contexts/DeliveryContext.jsx";
+import { getAllOrders, updateOrder } from "../api/ordersapi.js";
 
 export default function OrderList() {
   const [orders, setOrders] = useState([]);
@@ -10,49 +11,52 @@ export default function OrderList() {
   const [showDetails, setShowDetails] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const navigate = useNavigate();
-  const {acceptDelivery} = useDelivery();
-
+  const { acceptDelivery } = useDelivery();
 
   useEffect(() => {
     const loadOrders = async () => {
-      const stored = localStorage.getItem("orders");
-      if (stored) {
-        setOrders(JSON.parse(stored));
-      } else {
-        const response = await fetch("/db/orders.json");
-        const data = await response.json();
-        localStorage.setItem("orders", JSON.stringify(data));
+      try {
+        const data = await getAllOrders();
         setOrders(data);
+      } catch (err) {
+        console.error("Failed to load orders", err);
       }
     };
     loadOrders();
   }, []);
-
 
   const handleOrderClick = (order) => {
     setSelectedOrder(order);
     setShowDetails(true);
   };
 
-
   const handleAccept = () => {
     setShowDetails(false);
     setShowConfirm(true);
   };
 
+  const confirmAccept = async () => {
+    try {
+      const updatedOrder = await updateOrder(selectedOrder._id, {
+        status: "CONFIRMED",
+      });
 
-  const confirmAccept = () => {
-    const updatedOrders = orders.map((order) =>
-      order._id === selectedOrder._id
-        ? { ...order, status: "CONFIRMED" }
-        : order
-    );
-    setOrders(updatedOrders);
-    localStorage.setItem("orders", JSON.stringify(updatedOrders));
-    acceptDelivery(selectedOrder);
-    setShowConfirm(false);
-    setSelectedOrder(null);
-    navigate("/delivery");
+      setOrders((prev) =>
+        prev.map((order) =>
+          order._id === updatedOrder._id ? updatedOrder : order
+        )
+      );
+
+      //console.log("Order accepted:", updatedOrder); working
+
+      acceptDelivery(updatedOrder);
+      setShowConfirm(false);
+      setSelectedOrder(null);
+      navigate("/delivery");
+    } catch (err) {
+      console.error("Order acceptance failed:", err);
+      setShowConfirm(false);
+    }
   };
 
   return (
@@ -71,7 +75,7 @@ export default function OrderList() {
           >
             <div className="flex justify-between items-center">
               <div>
-                <div className="font-semibold">Order #{order._id}</div>
+                <div className="font-semibold">Order #{order.title}</div>
                 <div className="text-gray-500 text-sm">
                   {order.deliveryAddress.street}, {order.deliveryAddress.city}
                 </div>
@@ -92,7 +96,6 @@ export default function OrderList() {
           </div>
         ))}
       </div>
-
 
       <Popup open={showDetails} onClose={() => setShowDetails(false)}>
         {selectedOrder && (
@@ -133,7 +136,6 @@ export default function OrderList() {
           </div>
         )}
       </Popup>
-
 
       <Popup open={showConfirm} onClose={() => setShowConfirm(false)}>
         {selectedOrder && (

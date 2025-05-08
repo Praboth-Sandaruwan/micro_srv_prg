@@ -1,4 +1,4 @@
-const API_KEY = "AlzaSyh2u68c-NjkltGpZo--QvNLq5xKxMsxO3j"
+const API_KEY = "AlzaSy9Er8H2sKq-UT-dW8MgNmySawKTChU0mai"
 
 export const fetchRouteFromGoMaps = async (origin, destination) => {
   const url = `https://maps.gomaps.pro/maps/api/directions/json?origin=${origin.lat},${origin.lng}&destination=${destination.lat},${destination.lng}&key=${API_KEY}&mode=driving`;

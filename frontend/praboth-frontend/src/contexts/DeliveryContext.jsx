@@ -74,6 +74,7 @@ export const DeliveryProvider = ({ children }) => {
         },
         restaurantId: restaurant._id,
         customerId: customer._id,
+        deliverydriverId: localStorage.getItem("wsDriverId"),
       };
 
       console.log("New delivery accepted:", newDelivery);
