@@ -1,5 +1,6 @@
 import React, { createContext, useState, useEffect, useContext } from "react";
 import { createNotification } from "../api/notificationapi";
+import { updateOrder } from "../api/ordersapi";
 
 const DeliveryContext = createContext(null);
 
@@ -60,9 +61,7 @@ export const DeliveryProvider = ({ children }) => {
         return;
       }
 
-      const newDelivery = {
-        ...delivery,
-        status: "PICKUP",
+      const deliveryData = {
         history: [{ status: "PICKUP", timestamp: new Date() }],
         restaurantLocation: {
           lat: restaurant.location.latitude,
@@ -77,7 +76,10 @@ export const DeliveryProvider = ({ children }) => {
         deliverydriverId: localStorage.getItem("wsDriverId"),
       };
 
-      console.log("New delivery accepted:", newDelivery);
+      console.log("Delivery id:", delivery._id);
+      console.log("New delivery accepted:", deliveryData);
+
+      const newDelivery = await updateOrder(delivery._id, deliveryData);
 
       setCurrentDelivery(newDelivery);
       localStorage.setItem("currentDelivery", JSON.stringify(newDelivery));
