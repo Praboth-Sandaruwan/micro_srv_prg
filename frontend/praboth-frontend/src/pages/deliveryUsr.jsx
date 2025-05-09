@@ -5,14 +5,14 @@ import {
   Polyline,
   Marker,
 } from "@react-google-maps/api";
-import { useDelivery } from "../contexts/DeliveryContext";
 import { jwtDecode } from "jwt-decode";
 import { fetchConnectedDrivers } from "../api/driverapi";
 import { fetchRouteFromGoMaps, snapToNearestRoad } from "../api/gomapsapi";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import DriverMarker from "../components/DriverMarker";
 import DestinationMarker from "../components/DestinationMarker";
 import { samplePoints } from "../utils/MapHelper";
+import { getOrderById } from "../api/ordersapi";
 
 const containerStyle = {
   width: "100%",
@@ -23,14 +23,14 @@ const libraries = ["places", "geometry"];
 
 const GOOGLE_MAPS_API_KEY = "AIzaSyDR5IF3eFb_qb_0v-W-E299o8Z0zu_jd08";
 
-export default function Delivery() {
-  const { currentDelivery, updateDeliveryStatus, completeDelivery } =
-    useDelivery();
+export default function DeliveryUsr() {
   const [driverLocation, setDriverLocation] = useState(null);
   const [destination, setDestination] = useState(null);
+  const [order, setOrder] = useState(null);
   const [routePath, setRoutePath] = useState([]);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const orderId = useParams().id;
 
   const intervalRef = useRef();
   const mapRef = useRef();
@@ -40,22 +40,16 @@ export default function Delivery() {
     libraries,
   });
 
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      window.location.href = "/login";
+  useEffect(async () => {
+    const orderData = await getOrderById(orderId);
+    if (!orderData) {
+      console.error("Order not found");
       return;
     }
 
-    let driverId;
-    try {
-      const decoded = jwtDecode(token);
-      driverId = decoded.id;
-    } catch (error) {
-      console.error("Invalid token:", error);
-      window.location.href = "/login";
-      return;
-    }
+    setOrder(orderData);
+
+    const driverId = orderData.deliverydriverId;
 
     const pollDriverLocation = async () => {
       try {
@@ -87,15 +81,12 @@ export default function Delivery() {
   }, []);
 
   useEffect(() => {
-    if (!currentDelivery) return;
+    if (!order) return;
 
-    const targetLocation =
-      currentDelivery.status === "PICKUP"
-        ? currentDelivery.restaurantLocation
-        : currentDelivery.deliveryAddress;
+    const targetLocation = order.deliveryAddress;
 
     setDestination({ lat: targetLocation.lat, lng: targetLocation.lng });
-  }, [currentDelivery]);
+  }, [order]);
 
   useEffect(() => {
     const fetchRoute = async () => {
@@ -121,7 +112,7 @@ export default function Delivery() {
     };
 
     fetchRoute();
-  }, [driverLocation, destination, currentDelivery]);
+  }, [driverLocation, destination, order]);
 
   useEffect(() => {
     if (!navigator.geolocation) return;
@@ -146,14 +137,6 @@ export default function Delivery() {
     return () => navigator.geolocation.clearWatch(watchId);
   }, []);
 
-  const handlePickup = async () => {
-    await updateDeliveryStatus("OUTFORDELIVERY");
-  };
-
-  const handleCompleteDelivery = async () => {
-    await completeDelivery();
-    navigate("/dashboard");
-  };
 
   if (loadError)
     return (
@@ -162,8 +145,7 @@ export default function Delivery() {
       </div>
     );
   if (!isLoaded) return <div className="p-4 text-center">Loading map...</div>;
-  if (!currentDelivery)
-    return <div className="p-4 text-center">No active delivery.</div>;
+  if (!order) return <div className="p-4 text-center">No active delivery.</div>;
   if (error)
     return <div className="p-4 text-center text-red-500">Error: {error}</div>;
 
@@ -173,7 +155,7 @@ export default function Delivery() {
         center={driverLocation || { lat: 0, lng: 0 }}
         zoom={14}
         mapContainerStyle={containerStyle}
-        mapId="" // No Map ID used
+        mapId=""
         onLoad={(map) => (mapRef.current = map)}
         options={{
           disableDefaultUI: true,
@@ -198,31 +180,10 @@ export default function Delivery() {
       {/* Info Box */}
       <div className="absolute top-4 left-4 bg-white p-4 rounded-lg shadow-xl max-w-[300px] z-[1000]">
         <h2 className="text-xl font-semibold mb-2">
-          {currentDelivery.status === "PICKUP"
+          {order.status === "PICKUP"
             ? "Going to Restaurant"
             : "Going to Customer"}
         </h2>
-        <p className="text-gray-700 mb-4 text-sm">
-          {currentDelivery.status === "PICKUP"
-            ? currentDelivery.restaurantLocation.address
-            : currentDelivery.deliveryAddress.fullAddress}
-        </p>
-        <button
-          onClick={
-            currentDelivery.status === "PICKUP"
-              ? handlePickup
-              : handleCompleteDelivery
-          }
-          className={`py-2 px-4 w-full rounded ${
-            currentDelivery.status === "PICKUP"
-              ? "bg-blue-600 hover:bg-blue-700"
-              : "bg-green-600 hover:bg-green-700"
-          } text-white`}
-        >
-          {currentDelivery.status === "PICKUP"
-            ? "Pickup Order"
-            : "Complete Delivery"}
-        </button>
       </div>
     </div>
   );

@@ -88,8 +88,12 @@ export const DeliveryProvider = ({ children }) => {
     }
   };
 
-  const updateDeliveryStatus = (newStatus) => {
-    if (!["PICKUP", "OUTFORDELIVERY"].includes(newStatus)) return;
+  const updateDeliveryStatus = async (newStatus) => {
+    if (!["PICKUP", "OUTFORDELIVERY", "COMPLETED"].includes(newStatus)) return;
+    await updateOrder(currentDelivery._id, {
+      status: newStatus,
+      history: [...prev.history, { status: newStatus, timestamp: new Date() }],
+    });
     setCurrentDelivery((prev) => ({
       ...prev,
       status: newStatus,
@@ -101,6 +105,8 @@ export const DeliveryProvider = ({ children }) => {
     const driver = localStorage.getItem("wsDriverId");
     localStorage.removeItem("currentDelivery");
     setCurrentDelivery(null);
+
+    await updateDeliveryStatus("COMPLETED");
 
     const notificationData = {
       user: driver,

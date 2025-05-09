@@ -54,3 +54,35 @@ export const deleteOrder = async (orderId) => {
         throw error;
     }
 }
+
+// User api helpers
+
+export const getUserOrders = async (userId) => {
+    try {
+        const response = await api.get('/orders');
+        return response.data.filter(order => order.userId === userId);
+    } catch (error) {
+        console.error('Error fetching completed orders:', error);
+        throw error;
+    }
+}
+
+export const getOutForDelOrders = async (userId) => {
+    try {
+        const response = await api.get('/orders');
+        return response.data.filter(order => order.status === "OUTFORDELIVERY" && order.userId === userId);
+    } catch (error) {
+        console.error('Error fetching completed orders:', error);
+        throw error;
+    }
+}
+
+export const getCompletedOrders = async (userId) => {
+    try {
+        const response = await api.get('/orders');
+        return response.data.filter(order => order.status === "COMPLETED" && order.userId === userId);
+    } catch (error) {
+        console.error('Error fetching completed orders:', error);
+        throw error;
+    }
+}
