@@ -3,12 +3,10 @@ import {
   GoogleMap,
   useLoadScript,
   Polyline,
-  Marker,
 } from "@react-google-maps/api";
-import { jwtDecode } from "jwt-decode";
 import { fetchConnectedDrivers } from "../api/driverapi";
 import { fetchRouteFromGoMaps, snapToNearestRoad } from "../api/gomapsapi";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import DriverMarker from "../components/DriverMarker";
 import DestinationMarker from "../components/DestinationMarker";
 import { samplePoints } from "../utils/MapHelper";
@@ -29,7 +27,6 @@ export default function DeliveryUsr() {
   const [order, setOrder] = useState(null);
   const [routePath, setRoutePath] = useState([]);
   const [error, setError] = useState(null);
-  const navigate = useNavigate();
   const orderId = useParams().id;
 
   const intervalRef = useRef();
@@ -40,45 +37,51 @@ export default function DeliveryUsr() {
     libraries,
   });
 
-  useEffect(async () => {
-    const orderData = await getOrderById(orderId);
-    if (!orderData) {
-      console.error("Order not found");
-      return;
-    }
-
-    setOrder(orderData);
-
-    const driverId = orderData.deliverydriverId;
-
-    const pollDriverLocation = async () => {
-      try {
-        const response = await fetchConnectedDrivers();
-        if (!response.data) throw new Error("Driver location fetch failed.");
-
-        const drivers = Object.entries(response.data).map(([id, location]) => ({
-          driverId: id,
-          ...location,
-        }));
-
-        const currentDriver = drivers.find((d) => d.driverId === driverId);
-        if (currentDriver) {
-          setDriverLocation({
-            lat: currentDriver.latitude,
-            lng: currentDriver.longitude,
-          });
-        }
-      } catch (error) {
-        console.error("Polling error:", error);
-        setError(error.message);
+  useEffect(() => {
+    const orderDataAndPolling = async () => {
+      const orderData = await getOrderById(orderId);
+      if (!orderData) {
+        console.error("Order not found");
+        return;
       }
+
+      setOrder(orderData);
+
+      const driverId = orderData.deliverydriverId;
+
+      const pollDriverLocation = async () => {
+        try {
+          const response = await fetchConnectedDrivers();
+          if (!response.data) throw new Error("Driver location fetch failed.");
+
+          const drivers = Object.entries(response.data).map(
+            ([id, location]) => ({
+              driverId: id,
+              ...location,
+            })
+          );
+
+          const currentDriver = drivers.find((d) => d.driverId === driverId);
+          if (currentDriver) {
+            setDriverLocation({
+              lat: currentDriver.latitude,
+              lng: currentDriver.longitude,
+            });
+          }
+        } catch (error) {
+          console.error("Polling error:", error);
+          setError(error.message);
+        }
+      };
+
+      pollDriverLocation();
+      intervalRef.current = setInterval(pollDriverLocation, 1000);
     };
 
-    pollDriverLocation();
-    intervalRef.current = setInterval(pollDriverLocation, 1000);
+    orderDataAndPolling();
 
     return () => clearInterval(intervalRef.current);
-  }, []);
+  }, [orderId]);
 
   useEffect(() => {
     if (!order) return;
@@ -113,30 +116,6 @@ export default function DeliveryUsr() {
 
     fetchRoute();
   }, [driverLocation, destination, order]);
-
-  useEffect(() => {
-    if (!navigator.geolocation) return;
-
-    const watchId = navigator.geolocation.watchPosition(
-      (position) => {
-        setDriverLocation({
-          lat: position.coords.latitude,
-          lng: position.coords.longitude,
-        });
-      },
-      (error) => {
-        console.error("Geolocation watch error:", error);
-      },
-      {
-        enableHighAccuracy: true,
-        maximumAge: 0,
-        timeout: 15000,
-      }
-    );
-
-    return () => navigator.geolocation.clearWatch(watchId);
-  }, []);
-
 
   if (loadError)
     return (
@@ -180,9 +159,15 @@ export default function DeliveryUsr() {
       {/* Info Box */}
       <div className="absolute top-4 left-4 bg-white p-4 rounded-lg shadow-xl max-w-[300px] z-[1000]">
         <h2 className="text-xl font-semibold mb-2">
-          {order.status === "PICKUP"
-            ? "Going to Restaurant"
-            : "Going to Customer"}
+          {order.status === "CONFIRMED" &&
+            "Driver is preparing to pick up your order"}
+          {order.status === "PICKUP" && "Driver is going to the restaurant"}
+          {order.status === "OUTFORDELIVERY" &&
+            "Driver is delivering your order"}
+          {order.status === "COMPLETED" && "Order delivered!"}
+          {!["CONFIRMED", "PICKUP", "OUTFORDELIVERY", "COMPLETED"].includes(
+            order.status
+          ) && "Order status: " + order.status}
         </h2>
       </div>
     </div>
