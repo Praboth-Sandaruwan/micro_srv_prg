@@ -5,8 +5,8 @@ import Dashboard from "./pages/dashboard";
 import { WebSocketProvider } from "./contexts/WebSocketContext";
 import { DeliveryProvider } from "./contexts/DeliveryContext";
 import Delivery from "./components/delivery";
-// import DriversList from "./pages/DriversList";
-// import DriverDetails from "./pages/DriverDetails";
+import DeliveryUsr from "./pages/deliveryUsr";
+
 
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-routing-machine/dist/leaflet-routing-machine.css';
@@ -21,6 +21,7 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/delivery" element={<Delivery />} />
+          <Route path="/delivery/:id" element={<DeliveryUsr />} />
         </Routes>
       </DeliveryProvider>
     </WebSocketProvider>
