@@ -194,6 +194,7 @@ const updateRestaurant = async (req, res) => {
       name, 
       description, 
       address, 
+      location,
       contactNumber, 
       email, 
       operatingHours, 
@@ -205,19 +206,39 @@ const updateRestaurant = async (req, res) => {
     // Update restaurant details
     restaurant.name = name || restaurant.name;
     restaurant.description = description || restaurant.description;
-    restaurant.address = address || restaurant.address;
+    
+    // Update address if provided
+    if (address) {
+      restaurant.address.street = address.street || restaurant.address.street;
+      restaurant.address.city = address.city || restaurant.address.city;
+      restaurant.address.state = address.state || restaurant.address.state;
+      restaurant.address.zipCode = address.zipCode || restaurant.address.zipCode;
+    }
+    
+    // Update location if provided
+    if (location) {
+      restaurant.location.latitude = location.latitude || restaurant.location.latitude;
+      restaurant.location.longitude = location.longitude || restaurant.location.longitude;
+    }
+    
     restaurant.contactNumber = contactNumber || restaurant.contactNumber;
     restaurant.email = email || restaurant.email;
-    restaurant.operatingHours = operatingHours || restaurant.operatingHours;
+    
+    // Update operating hours if provided
+    if (operatingHours) {
+      restaurant.operatingHours.startTime = operatingHours.startTime || restaurant.operatingHours.startTime;
+      restaurant.operatingHours.endTime = operatingHours.endTime || restaurant.operatingHours.endTime;
+    }
+    
     restaurant.cuisine = cuisine || restaurant.cuisine;
     restaurant.isOpen = isOpen !== undefined ? isOpen : restaurant.isOpen;
     restaurant.image = image || restaurant.image;
     
-    await restaurant.save();
+    const updatedRestaurant = await restaurant.save();
     
     return res.status(200).json({
       message: SUCCESS_MESSAGES.RESTAURANT_UPDATED,
-      restaurant
+      restaurant: updatedRestaurant
     });
   } catch (error) {
     console.error('Update restaurant error:', error);

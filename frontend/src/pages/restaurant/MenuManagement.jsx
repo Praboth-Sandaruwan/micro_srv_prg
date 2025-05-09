@@ -9,6 +9,7 @@ import {
   Spinner,
   Tooltip
 } from '@material-tailwind/react';
+import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '../../context/AuthContext';
 import { showToast } from '../../components/ui/Toast';
 import api from '../../services/api';
@@ -91,273 +92,198 @@ const MenuManagement = () => {
   };
 
   return (
-    <div style={{ 
-      padding: '2rem',
-      maxWidth: '1280px',
-      margin: '0 auto'
-    }}>
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: '2rem' 
-      }}>
+    <div className="min-h-screen bg-gray-50 p-8">
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
         <div>
-          <Typography variant="h3">Menu Management</Typography>
-          <Typography variant="paragraph" color="blue-gray" style={{ marginTop: '0.5rem' }}>
+          <h2 className="text-2xl font-bold text-gray-800">Menu Management</h2>
+          <p className="text-gray-600 mt-2">
             Manage your restaurant menu items
-          </Typography>
+          </p>
         </div>
-        <Link to="/restaurant/menu/add">
-          <Button 
-            color="blue"
-            style={{ 
-              backgroundColor: '#3b82f6', 
-              color: 'white',
-              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-              fontWeight: '500',
-              padding: '0.75rem 1.5rem',
-              borderRadius: '0.375rem',
-            }}
-          >
-            Add Menu Item
-          </Button>
-        </Link>
+        <Link 
+  to="/restaurant/menu/add" 
+  className="mt-4 md:mt-0 inline-flex items-center px-6 py-3 text-white font-medium rounded-lg shadow-md transition-all duration-300"
+  style={{
+    background: 'linear-gradient(to right, #3b82f6, #60a5fa)',
+    backgroundSize: '200% auto'
+  }}
+  onMouseEnter={(e) => {
+    e.currentTarget.style.backgroundPosition = 'right center';
+    e.currentTarget.style.filter = 'brightness(1.05)';
+  }}
+  onMouseLeave={(e) => {
+    e.currentTarget.style.backgroundPosition = 'left center';
+    e.currentTarget.style.filter = 'brightness(1)';
+  }}
+>
+  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+    <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+  </svg>
+  Add Menu Item
+</Link>
       </div>
       
       {loading ? (
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem' }}>
-          <Spinner style={{ height: '3rem', width: '3rem', color: '#3b82f6' }} />
+        <div className="flex justify-center items-center py-20">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
         </div>
       ) : restaurants.length === 0 ? (
-        <Card>
-          <CardBody style={{ textAlign: 'center', padding: '3rem' }}>
-            <Typography variant="h5" color="blue-gray" style={{ marginBottom: '1rem' }}>
-              No Restaurants Found
-            </Typography>
-            <Typography variant="paragraph" color="gray">
+        <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200">
+          <div className="p-12 text-center">
+            <div className="mx-auto h-16 w-16 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 mb-4">
+              <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-medium text-gray-900">No Restaurants Found</h3>
+            <p className="mt-2 text-gray-500">
               You need to register a restaurant before adding menu items.
-            </Typography>
-            <Button 
-              color="blue" 
-              variant="gradient" 
-              style={{ marginTop: '1rem' }}
-              onClick={() => navigate('/restaurant/register')}
-            >
-              Register Restaurant
-            </Button>
-          </CardBody>
-        </Card>
+            </p>
+            <button
+  onClick={() => navigate('/restaurant/register')}
+  className="mt-6 inline-flex items-center px-4 py-2 text-white font-medium rounded-md shadow-sm transition-all duration-300"
+  style={{
+    background: 'linear-gradient(to right, #3b82f6, #60a5fa)',
+    backgroundSize: '200% auto'
+  }}
+  onMouseEnter={(e) => {
+    e.currentTarget.style.backgroundPosition = 'right center';
+    e.currentTarget.style.filter = 'brightness(1.05)';
+  }}
+  onMouseLeave={(e) => {
+    e.currentTarget.style.backgroundPosition = 'left center';
+    e.currentTarget.style.filter = 'brightness(1)';
+  }}
+>
+  Register Restaurant
+</button>
+          </div>
+        </div>
       ) : (
         <>
-          <Card style={{ marginBottom: '2rem' }}>
-            <CardHeader
-              color="blue"
-              style={{ 
-                padding: '1rem', 
-                backgroundColor: '#f8fafc', 
-                borderBottom: '1px solid #e2e8f0' 
-              }}
-            >
-              <Typography variant="h6">Select Restaurant</Typography>
-            </CardHeader>
-            <CardBody>
-              <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-                {restaurants.map((restaurant) => (
-                  <div key={restaurant._id} style={{ display: 'flex', alignItems: 'center' }}>
-                    <Button
-                      color={selectedRestaurant === restaurant._id ? "blue" : "gray"}
-                      variant={selectedRestaurant === restaurant._id ? "filled" : "outlined"}
-                      onClick={() => handleRestaurantChange(restaurant._id)}
-                    >
-                      {restaurant.name}
-                    </Button>
-                    <Tooltip content="Add menu item">
-                      <Button
-                        color="blue"
-                        variant="text"
-                        size="sm"
-                        onClick={() => handleAddMenuItem(restaurant._id)}
-                        style={{ 
-                          marginLeft: '0.25rem',
-                          padding: '0.3rem',
-                          minWidth: 'auto',
-                          borderRadius: '9999px'
-                        }}
-                      >
-                        +
-                      </Button>
-                    </Tooltip>
-                  </div>
-                ))}
-              </div>
-            </CardBody>
-          </Card>
-
-          <Card>
-            <CardHeader
-              color="blue"
-              style={{ 
-                padding: '1rem', 
-                backgroundColor: '#f8fafc', 
-                borderBottom: '1px solid #e2e8f0' 
-              }}
-            >
-              <Typography variant="h6">Menu Items</Typography>
-            </CardHeader>
-            <CardBody>
+          {/* Restaurant Selection Card */}
+<div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200 mb-6">
+  <div className="px-6 py-4 bg-blue-50 border-b border-gray-200">
+    <h3 className="text-lg font-semibold text-gray-900">Select Restaurant</h3>
+  </div>
+  <div className="p-6">
+    <div className="flex flex-wrap gap-3">
+      {restaurants.map((restaurant) => (
+        <div key={restaurant._id} className="flex items-center">
+          <button
+            onClick={() => handleRestaurantChange(restaurant._id)}
+            className={`px-4 py-2 rounded-md font-medium transition-colors ${
+              selectedRestaurant === restaurant._id 
+                ? 'text-white shadow-md'
+                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+            }`}
+            style={selectedRestaurant === restaurant._id ? {
+              background: 'linear-gradient(to right, #3b82f6, #60a5fa)',
+              backgroundSize: '200% auto',
+              transition: 'all 0.3s ease'
+            } : {}}
+          >
+            {restaurant.name}
+          </button>
+          <button
+            onClick={() => handleAddMenuItem(restaurant._id)}
+            className="ml-2 p-2 text-blue-600 hover:text-blue-800 rounded-full hover:bg-blue-50 transition-colors"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+            </svg>
+          </button>
+        </div>
+      ))}
+    </div>
+  </div>
+</div>
+  
+          {/* Menu Items Table */}
+          <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200">
+            <div className="px-6 py-4 bg-blue-50 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900">Menu Items</h3>
+            </div>
+            <div className="p-6">
               {menuItems.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '2rem' }}>
-                  <Typography variant="paragraph" color="gray">
+                <div className="text-center py-8">
+                  <p className="text-gray-500">
                     No menu items found. Click "Add Menu Item" to create your first menu item.
-                  </Typography>
+                  </p>
                 </div>
               ) : (
-                <div style={{ overflowX: 'auto' }}>
-                  <table style={{ 
-                    width: '100%', 
-                    borderCollapse: 'collapse',
-                    minWidth: '800px'
-                  }}>
-                    <thead>
-                      <tr style={{ 
-                        backgroundColor: '#f8fafc', 
-                        borderBottom: '1px solid #e2e8f0' 
-                      }}>
-                        <th style={{ 
-                          padding: '1rem', 
-                          textAlign: 'left', 
-                          fontWeight: '600',
-                          color: '#475569',
-                          fontSize: '0.875rem'
-                        }}>Image</th>
-                        <th style={{ 
-                          padding: '1rem', 
-                          textAlign: 'left', 
-                          fontWeight: '600',
-                          color: '#475569',
-                          fontSize: '0.875rem'
-                        }}>Name</th>
-                        <th style={{ 
-                          padding: '1rem', 
-                          textAlign: 'left', 
-                          fontWeight: '600',
-                          color: '#475569',
-                          fontSize: '0.875rem'
-                        }}>Description</th>
-                        <th style={{ 
-                          padding: '1rem', 
-                          textAlign: 'left', 
-                          fontWeight: '600',
-                          color: '#475569',
-                          fontSize: '0.875rem'
-                        }}>Price</th>
-                        <th style={{ 
-                          padding: '1rem', 
-                          textAlign: 'left', 
-                          fontWeight: '600',
-                          color: '#475569',
-                          fontSize: '0.875rem'
-                        }}>Category</th>
-                        <th style={{ 
-                          padding: '1rem', 
-                          textAlign: 'center', 
-                          fontWeight: '600',
-                          color: '#475569',
-                          fontSize: '0.875rem'
-                        }}>Actions</th>
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-blue-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Image</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Name</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Description</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Price</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Category</th>
+                        <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">Actions</th>
                       </tr>
                     </thead>
-                    <tbody>
+                    <tbody className="bg-white divide-y divide-gray-200">
                       {menuItems.map((item) => (
-                        <tr key={item._id} style={{ 
-                          borderBottom: '1px solid #e2e8f0',
-                          transition: 'background-color 0.2s'
-                        }}>
-                          <td style={{ 
-                            padding: '1.25rem 1rem', 
-                            width: '80px'
-                          }}>
+                        <tr key={item._id} className="hover:bg-gray-50 transition-colors">
+                          <td className="px-6 py-4 whitespace-nowrap">
                             {item.image ? (
                               <img 
                                 src={item.image} 
                                 alt={item.name}
-                                style={{ 
-                                  width: '60px', 
-                                  height: '60px', 
-                                  objectFit: 'cover',
-                                  borderRadius: '4px' 
-                                }}
+                                className="w-16 h-16 object-cover rounded-md"
                               />
                             ) : (
-                              <div style={{ 
-                                width: '60px', 
-                                height: '60px', 
-                                backgroundColor: '#e2e8f0',
-                                borderRadius: '4px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                color: '#94a3b8',
-                                fontSize: '0.75rem'
-                              }}>
+                              <div className="w-16 h-16 bg-gray-100 rounded-md flex items-center justify-center text-gray-400 text-xs">
                                 No image
                               </div>
                             )}
                           </td>
-                          <td style={{ 
-                            padding: '1.25rem 1rem', 
-                            color: '#334155',
-                            fontSize: '0.875rem',
-                            fontWeight: '500'
-                          }}>{item.name}</td>
-                          <td style={{ 
-                            padding: '1.25rem 1rem', 
-                            color: '#334155',
-                            fontSize: '0.875rem'
-                          }}>{item.description}</td>
-                          <td style={{ 
-                            padding: '1.25rem 1rem', 
-                            color: '#334155',
-                            fontSize: '0.875rem'
-                          }}>${item.price.toFixed(2)}</td>
-                          <td style={{ 
-                            padding: '1.25rem 1rem', 
-                            color: '#334155',
-                            fontSize: '0.875rem'
-                          }}>{item.category}</td>
-                          <td style={{ 
-                            padding: '1rem', 
-                            textAlign: 'center',
-                            whiteSpace: 'nowrap'
-                          }}>
-                            <Link to={`/restaurant/menu/edit/${item._id}`}>
-                              <Button 
-                                color="blue" 
-                                size="sm" 
-                                variant="outlined"
-                                style={{ marginRight: '0.5rem' }}
-                              >
-                                Edit
-                              </Button>
-                            </Link>
-                            <Button 
-                              color="red" 
-                              size="sm" 
-                              variant="outlined"
-                              onClick={() => handleDeleteMenuItem(item._id)}
-                            >
-                              Delete
-                            </Button>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm font-medium text-gray-900">{item.name}</div>
                           </td>
+                          <td className="px-6 py-4">
+                            <div className="text-sm text-gray-500 line-clamp-2">{item.description}</div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm text-gray-900">${item.price.toFixed(2)}</div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm text-gray-500">{item.category}</div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-center">
+  <div className="flex justify-center space-x-2">
+    <Tooltip content="Edit Menu Item">
+      <Link to={`/restaurant/menu/edit/${item._id}`}>
+        <button className="p-2 text-blue-600 hover:text-blue-800 rounded-full hover:bg-blue-50 transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+          </svg>
+        </button>
+      </Link>
+    </Tooltip>
+    <Tooltip content="Delete Menu Item">
+      <button 
+        onClick={() => handleDeleteMenuItem(item._id)}
+        className="p-2 text-red-600 hover:text-red-800 rounded-full hover:bg-red-50 transition-colors"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+        </svg>
+      </button>
+    </Tooltip>
+  </div>
+</td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 </div>
               )}
-            </CardBody>
-          </Card>
+            </div>
+          </div>
         </>
       )}
     </div>

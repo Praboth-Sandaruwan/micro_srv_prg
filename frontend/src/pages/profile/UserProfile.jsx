@@ -1,21 +1,20 @@
 // src/pages/profile/UserProfile.jsx
 import { useState, useEffect } from 'react';
-import {
-  Card,
-  CardHeader,
-  CardBody,
-  CardFooter,
-  Typography,
-  Button,
-  Avatar,
-  Input
-} from '@material-tailwind/react';
-import { PencilIcon, CheckIcon, XMarkIcon, MapPinIcon } from '@heroicons/react/24/outline';
-import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
-import { showToast } from '../../components/ui/Toast';
 import { useAuth } from '../../context/AuthContext';
 import authService from '../../services/authService';
-import api from '../../services/api'; 
+import api from '../../services/api';
+import {
+  UserIcon,
+  PencilIcon,
+  CheckIcon,
+  XMarkIcon,
+  MapPinIcon,
+  EnvelopeIcon,
+  PhoneIcon,
+  ArrowRightOnRectangleIcon
+} from '@heroicons/react/24/outline';
+import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
+import { showToast } from '../../components/ui/Toast';
 
 const UserProfile = () => {
   const { user, loading: authLoading } = useAuth();
@@ -195,13 +194,9 @@ const UserProfile = () => {
 
   if (authLoading) {
     return (
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        height: '80vh' 
-      }}>
+      <div className="flex justify-center items-center h-80vh">
         <LoadingSpinner size="lg" />
+        <p className="mt-4 text-blue-600 animate-pulse font-medium">Loading your profile...</p>
       </div>
     );
   }
@@ -222,302 +217,230 @@ const UserProfile = () => {
   };
 
   return (
-    <div style={{ 
-      padding: '2rem',
-      maxWidth: '800px',
-      margin: '0 auto'
-    }}>
-      <Card style={{ boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)' }}>
-        <CardHeader
-          floated={false}
-          variant="gradient"
-          color="blue"
-          style={{ 
-            padding: '1.5rem',
-            margin: '0',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: '1rem'
-          }}
-        >
-          <div
-            style={{
-              width: '100px',
-              height: '100px',
-              borderRadius: '50%',
-              backgroundColor: '#2196f3',
-              color: 'white',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontWeight: 'bold',
-              fontSize: '2rem',
-              border: '2px solid white'
-            }}
-          >
-            {getUserInitials()}
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-6xl mx-auto">
+        {/* Profile Header with Icon */}
+        <div className="flex flex-col items-center mb-8">
+          <div className="relative group mb-4">
+            <div className="w-32 h-32 rounded-full bg-gradient-to-r from-blue-400 to-blue-600 flex items-center justify-center shadow-lg">
+              <span className="text-4xl font-bold text-white">{getUserInitials()}</span>
+            </div>
           </div>
-          <Typography variant="h4" color="white">
-            {user?.name}
-          </Typography>
-        </CardHeader>
-        <CardBody style={{ padding: '2rem' }}>
-          {isEditing ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-              <div>
-                <Input
-                  type="text"
-                  label="Full Name"
-                  name="name"
-                  value={profileData.name}
-                  onChange={handleChange}
-                  size="lg"
-                  error={!!errors.name}
-                />
-                {errors.name && (
-                  <Typography
-                    variant="small"
-                    color="red"
-                    style={{ marginTop: '0.25rem' }}
-                  >
-                    {errors.name}
-                  </Typography>
-                )}
-              </div>
+          <h1 className="text-3xl font-bold text-gray-800">{user?.name}</h1>
+          <div className="flex items-center gap-1 mt-2">
+            <div className="bg-gradient-to-r from-blue-600 to-blue-300 text-white text-xs px-3 py-1 rounded-full capitalize font-medium">
+              {user?.role || 'User'}
+            </div>
+          </div>
+        </div>
 
+        {/* Profile Information */}
+        <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 mb-8">
+          <div className="p-6 sm:p-8">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
               <div>
-                <Input
-                  type="email"
-                  label="Email"
-                  name="email"
-                  value={profileData.email}
-                  onChange={handleChange}
-                  size="lg"
-                  error={!!errors.email}
-                />
-                {errors.email && (
-                  <Typography
-                    variant="small"
-                    color="red"
-                    style={{ marginTop: '0.25rem' }}
-                  >
-                    {errors.email}
-                  </Typography>
-                )}
+                <h2 className="text-2xl font-bold text-gray-800 mb-2">Profile Information</h2>
+                <div className="w-16 h-1 bg-gradient-to-r from-blue-600 to-blue-300"></div>
               </div>
-
-              <div>
-                <Input
-                  type="tel"
-                  label="Phone Number"
-                  name="phoneNumber"
-                  value={profileData.phoneNumber}
-                  onChange={(e) => {
-                    // Only allow numbers
-                    const value = e.target.value.replace(/\D/g, '');
-                    e.target.value = value; // Update the input value
-                    handleChange(e); // Call the original handleChange
-                  }}
-                  size="lg"
-                  error={!!errors.phoneNumber}
-                />
-                {errors.phoneNumber && (
-                  <Typography
-                    variant="small"
-                    color="red"
-                    style={{ marginTop: '0.25rem' }}
-                  >
-                    {errors.phoneNumber}
-                  </Typography>
-                )}
-              </div>
-
-              <div>
-                <Typography
-                  variant="small"
-                  color="blue-gray"
-                  className="font-semibold"
-                  style={{ marginBottom: '0.5rem', fontSize: '0.75rem', textTransform: 'uppercase', color: '#64748b' }}
-                >
-                  Location
-                </Typography>
-                <div style={{ display: 'flex', gap: '1rem' }}>
-                  <div style={{ flex: 1 }}>
-                    <Input
+            </div>
+            
+            {isEditing ? (
+              <form className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-1">
+                    <label className="flex items-center gap-2 text-sm font-medium text-gray-600">
+                      <UserIcon className="h-4 w-4 text-blue-500" />
+                      Full Name
+                    </label>
+                    <input
                       type="text"
-                      label="Latitude"
-                      name="latitude"
-                      value={profileData.location.latitude}
+                      name="name"
+                      value={profileData.name}
                       onChange={handleChange}
-                      size="lg"
-                      error={!!(errors.location && errors.location.latitude)}
+                      required
+                      className={`w-full px-4 py-2.5 border ${errors.name ? 'border-red-400' : 'border-gray-200'} rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all`}
                     />
-                    {errors.location && errors.location.latitude && (
-                      <Typography
-                        variant="small"
-                        color="red"
-                        style={{ marginTop: '0.25rem' }}
-                      >
-                        {errors.location.latitude}
-                      </Typography>
+                    {errors.name && (
+                      <p className="text-red-500 text-xs mt-1">{errors.name}</p>
                     )}
                   </div>
-                  <div style={{ flex: 1 }}>
-                    <Input
-                      type="text"
-                      label="Longitude"
-                      name="longitude"
-                      value={profileData.location.longitude}
+                  
+                  <div className="space-y-1">
+                    <label className="flex items-center gap-2 text-sm font-medium text-gray-600">
+                      <EnvelopeIcon className="h-4 w-4 text-blue-500" />
+                      Email
+                    </label>
+                    <input
+                      type="email"
+                      name="email"
+                      value={profileData.email}
                       onChange={handleChange}
-                      size="lg"
-                      error={!!(errors.location && errors.location.longitude)}
+                      required
+                      className={`w-full px-4 py-2.5 border ${errors.email ? 'border-red-400' : 'border-gray-200'} rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all`}
                     />
-                    {errors.location && errors.location.longitude && (
-                      <Typography
-                        variant="small"
-                        color="red"
-                        style={{ marginTop: '0.25rem' }}
-                      >
-                        {errors.location.longitude}
-                      </Typography>
+                    {errors.email && (
+                      <p className="text-red-500 text-xs mt-1">{errors.email}</p>
                     )}
                   </div>
+                  
+                  <div className="space-y-1">
+                    <label className="flex items-center gap-2 text-sm font-medium text-gray-600">
+                      <PhoneIcon className="h-4 w-4 text-blue-500" />
+                      Phone Number
+                    </label>
+                    <input
+                      type="tel"
+                      name="phoneNumber"
+                      value={profileData.phoneNumber}
+                      onChange={(e) => {
+                        // Only allow numbers
+                        const value = e.target.value.replace(/\D/g, '');
+                        e.target.value = value; // Update the input value
+                        handleChange(e); // Call the original handleChange
+                      }}
+                      required
+                      className={`w-full px-4 py-2.5 border ${errors.phoneNumber ? 'border-red-400' : 'border-gray-200'} rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all`}
+                    />
+                    {errors.phoneNumber && (
+                      <p className="text-red-500 text-xs mt-1">{errors.phoneNumber}</p>
+                    )}
+                  </div>
+                  
+                  <div className="space-y-1 md:col-span-2">
+                    <label className="flex items-center gap-2 text-sm font-medium text-gray-600">
+                      <MapPinIcon className="h-4 w-4 text-blue-500" />
+                      Location
+                    </label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <input
+                          type="text"
+                          placeholder="Latitude"
+                          name="latitude"
+                          value={profileData.location.latitude}
+                          onChange={handleChange}
+                          className={`w-full px-4 py-2.5 border ${errors.location && errors.location.latitude ? 'border-red-400' : 'border-gray-200'} rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all`}
+                        />
+                        {errors.location && errors.location.latitude && (
+                          <p className="text-red-500 text-xs mt-1">{errors.location.latitude}</p>
+                        )}
+                      </div>
+                      <div>
+                        <input
+                          type="text"
+                          placeholder="Longitude"
+                          name="longitude"
+                          value={profileData.location.longitude}
+                          onChange={handleChange}
+                          className={`w-full px-4 py-2.5 border ${errors.location && errors.location.longitude ? 'border-red-400' : 'border-gray-200'} rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all`}
+                        />
+                        {errors.location && errors.location.longitude && (
+                          <p className="text-red-500 text-xs mt-1">{errors.location.longitude}</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-              <div>
-                <Typography
-                  variant="small"
-                  color="blue-gray"
-                  className="font-semibold"
-                  style={{ marginBottom: '0.25rem', fontSize: '0.75rem', textTransform: 'uppercase', color: '#64748b' }}
-                >
-                  Full Name
-                </Typography>
-                <Typography variant="paragraph" style={{ color: '#334155' }}>
-                  {user?.name}
-                </Typography>
-              </div>
-              
-              <div>
-                <Typography
-                  variant="small"
-                  color="blue-gray"
-                  className="font-semibold"
-                  style={{ marginBottom: '0.25rem', fontSize: '0.75rem', textTransform: 'uppercase', color: '#64748b' }}
-                >
-                  Email
-                </Typography>
-                <Typography variant="paragraph" style={{ color: '#334155' }}>
-                  {user?.email}
-                </Typography>
-              </div>
-              
-              <div>
-                <Typography
-                  variant="small"
-                  color="blue-gray"
-                  className="font-semibold"
-                  style={{ marginBottom: '0.25rem', fontSize: '0.75rem', textTransform: 'uppercase', color: '#64748b' }}
-                >
-                  Phone Number
-                </Typography>
-                <Typography variant="paragraph" style={{ color: '#334155' }}>
-                  {user?.phoneNumber}
-                </Typography>
-              </div>
-
-              <div>
-                <Typography
-                  variant="small"
-                  color="blue-gray"
-                  className="font-semibold"
-                  style={{ marginBottom: '0.25rem', fontSize: '0.75rem', textTransform: 'uppercase', color: '#64748b' }}
-                >
-                  Location
-                </Typography>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <MapPinIcon style={{ width: '16px', height: '16px', color: '#64748b' }} />
-                  <Typography variant="paragraph" style={{ color: '#334155' }}>
-                    Lat: {formatCoordinate(user?.location?.latitude)}, 
-                    Long: {formatCoordinate(user?.location?.longitude)}
-                  </Typography>
+                
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={handleSubmit}
+                    disabled={saving}
+                    className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-lg hover:shadow-md transition-all duration-300"
+                  >
+                    {saving ? (
+                      <LoadingSpinner size="sm" />
+                    ) : (
+                      <CheckIcon className="h-5 w-5" />
+                    )}
+                    <span>Save Changes</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={cancelEdit}
+                    className="flex items-center gap-2 px-6 py-3 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all duration-300"
+                  >
+                    <XMarkIcon className="h-5 w-5" />
+                    <span>Cancel</span>
+                  </button>
                 </div>
-              </div>
-              
-              <div>
-                <Typography
-                  variant="small"
-                  color="blue-gray"
-                  className="font-semibold"
-                  style={{ marginBottom: '0.25rem', fontSize: '0.75rem', textTransform: 'uppercase', color: '#64748b' }}
-                >
-                  Account Type
-                </Typography>
-                <div style={{
-                  backgroundColor: 
-                    user?.role === 'admin' ? '#3b82f6' : 
-                    user?.role === 'restaurant' ? '#10b981' : '#f59e0b',
-                  color: 'white',
-                  borderRadius: '9999px',
-                  padding: '0.25rem 0.75rem',
-                  fontSize: '0.75rem',
-                  fontWeight: '500',
-                  display: 'inline-block',
-                  textTransform: 'capitalize'
-                }}>
-                  {user?.role}
+              </form>
+            ) : (
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="flex items-center gap-4 p-4 bg-blue-50 rounded-lg">
+                    <div className="p-3 bg-blue-100 rounded-full">
+                      <UserIcon className="h-6 w-6 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Full Name</p>
+                      <p className="text-lg font-medium text-gray-800">{user?.name}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-4 p-4 bg-blue-50 rounded-lg">
+                    <div className="p-3 bg-blue-100 rounded-full">
+                      <EnvelopeIcon className="h-6 w-6 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Email</p>
+                      <p className="text-lg font-medium text-gray-800">{user?.email}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-4 p-4 bg-blue-50 rounded-lg">
+                    <div className="p-3 bg-blue-100 rounded-full">
+                      <PhoneIcon className="h-6 w-6 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Phone Number</p>
+                      <p className="text-lg font-medium text-gray-800">{user?.phoneNumber}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-4 p-4 bg-blue-50 rounded-lg">
+                    <div className="p-3 bg-blue-100 rounded-full">
+                      <MapPinIcon className="h-6 w-6 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Location</p>
+                      <p className="text-lg font-medium text-gray-800">
+                        Lat: {formatCoordinate(user?.location?.latitude)}, 
+                        Long: {formatCoordinate(user?.location?.longitude)}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-4 p-4 bg-blue-50 rounded-lg md:col-span-2">
+                    <div className="p-3 bg-blue-100 rounded-full">
+                      <ArrowRightOnRectangleIcon className="h-6 w-6 text-blue-600" />
+                    </div>
+                    <div className="flex items-center">
+                      <p className="text-sm text-gray-500 mr-3">Account Type</p>
+                      <div className={`
+                        ${user?.role === 'admin' ? 'bg-blue-600' : 
+                          user?.role === 'restaurant' ? 'bg-green-600' : 'bg-yellow-500'}
+                        text-white text-xs px-3 py-1 rounded-full capitalize font-medium
+                      `}>
+                        {user?.role || 'User'}
+                      </div>
+                    </div>
+                  </div>
                 </div>
+                
+                <button
+                  onClick={() => setIsEditing(true)}
+                  className="flex items-center gap-2 px-6 py-3 mt-6 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-lg hover:shadow-md transition-all duration-300"
+                >
+                  <PencilIcon className="h-5 w-5" />
+                  <span>Edit Profile</span>
+                </button>
               </div>
-            </div>
-          )}
-        </CardBody>
-        <CardFooter style={{ padding: '0 2rem 2rem' }}>
-          {isEditing ? (
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
-              <Button
-                variant="outlined"
-                color="blue-gray"
-                onClick={cancelEdit}
-              >
-                <XMarkIcon style={{ width: '16px', height: '16px', marginRight: '0.25rem' }} />
-                Cancel
-              </Button>
-              <Button
-                variant="gradient"
-                color="blue"
-                onClick={handleSubmit}
-                disabled={saving}
-                style={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: '0.5rem'
-                }}
-              >
-                {saving ? <LoadingSpinner size="sm" /> : <CheckIcon style={{ width: '16px', height: '16px' }} />}
-                Save Changes
-              </Button>
-            </div>
-          ) : (
-            <Button
-              variant="gradient"
-              color="blue"
-              onClick={() => setIsEditing(true)}
-              style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: '0.5rem'
-              }}
-            >
-              <PencilIcon style={{ width: '16px', height: '16px' }} />
-              Edit Profile
-            </Button>
-          )}
-        </CardFooter>
-      </Card>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

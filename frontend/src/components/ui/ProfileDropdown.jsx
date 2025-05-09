@@ -46,36 +46,34 @@ const ProfileDropdown = () => {
       <MenuHandler>
         <Button
           variant="text"
-          color="blue-gray"
-          className="flex items-center gap-2 p-2"
+          className="flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium hover:bg-blue-50 transition-colors duration-300"
         >
-          <div className="h-8 w-8 bg-black text-white rounded-full flex items-center justify-center">
-            <UserIcon className="h-5 w-5" />
+          <div className="h-8 w-8 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 text-white flex items-center justify-center">
+            {user?.name ? (
+              <span className="text-sm font-medium">{getUserInitials()}</span>
+            ) : (
+              <UserIcon className="h-4 w-4" />
+            )}
           </div>
-          <Typography variant="small" className="ml-1 font-medium text-gray-900">
-            {user?.name?.split(' ')[0] || 'User'}
-          </Typography>
+          <span className="text-gray-700">{user?.name?.split(' ')[0] || 'User'}</span>
         </Button>
       </MenuHandler>
   
-      <MenuList>
+      <MenuList className="p-1 min-w-[180px] border border-gray-200 shadow-lg rounded-lg">
         <MenuItem 
           onClick={handleProfileClick}
-          className="flex items-center gap-2"
+          className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-blue-50 rounded-md transition-colors duration-300"
         >
-          <UserIcon className="w-4 h-4" />
-          <Typography variant="small" className="font-medium">
-            My Profile
-          </Typography>
+          <UserCircleIcon className="w-4 h-4 text-gray-500" />
+          <span>My Profile</span>
         </MenuItem>
+        <hr className="my-1 border-gray-200" />
         <MenuItem
           onClick={handleLogout}
-          className="flex items-center gap-2 text-red-500"
+          className="flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-md transition-colors duration-300"
         >
           <PowerIcon className="w-4 h-4" />
-          <Typography variant="small" className="font-medium">
-            Sign Out
-          </Typography>
+          <span>Sign Out</span>
         </MenuItem>
       </MenuList>
     </Menu>

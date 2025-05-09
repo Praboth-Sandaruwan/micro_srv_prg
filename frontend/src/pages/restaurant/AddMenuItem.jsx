@@ -42,18 +42,15 @@ const AddMenuItem = () => {
         const response = await api.get('/menu/my-restaurants');
         setRestaurants(response.data);
         
-        // Get restaurantId from URL query parameters if it exists
         const params = new URLSearchParams(location.search);
         const restaurantId = params.get('restaurantId');
         
         if (restaurantId) {
-          // Set the specified restaurant as selected
           setFormData(prev => ({
             ...prev,
             restaurantId
           }));
         } else if (response.data.length > 0) {
-          // Set first restaurant as default if available and no specific restaurant is requested
           setFormData(prev => ({
             ...prev,
             restaurantId: response.data[0]._id
@@ -107,7 +104,6 @@ const AddMenuItem = () => {
       [name]: value
     });
     
-    // Clear error for this field
     if (errors[name]) {
       setErrors({
         ...errors,
@@ -184,13 +180,17 @@ const AddMenuItem = () => {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '70vh' }}>
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        height: '70vh' 
+      }}>
         <Spinner style={{ height: '3rem', width: '3rem', color: '#3b82f6' }} />
       </div>
     );
   }
 
-  // If no restaurants are found
   if (restaurants.length === 0) {
     return (
       <div style={{ 
@@ -198,7 +198,7 @@ const AddMenuItem = () => {
         maxWidth: '800px',
         margin: '0 auto'
       }}>
-        <Card>
+        <Card style={{ boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)' }}>
           <CardBody style={{ textAlign: 'center', padding: '3rem' }}>
             <Typography variant="h5" color="blue-gray" style={{ marginBottom: '1rem' }}>
               No Restaurants Found
@@ -223,197 +223,400 @@ const AddMenuItem = () => {
   return (
     <div style={{ 
       padding: '2rem',
-      maxWidth: '800px',
-      margin: '0 auto'
+      maxWidth: '1024px',
+      margin: '0 auto',
+      backgroundImage: 'linear-gradient(to bottom, #f9fafb, #ffffff)',
+      minHeight: 'calc(100vh - 4rem)'
     }}>
-      <Card>
+      <Card style={{ boxShadow: '0 10px 20px rgba(0, 0, 0, 0.1)', borderRadius: '1rem', overflow: 'hidden' }}>
         <CardHeader
+          floated={false}
+          variant="gradient"
           color="blue"
           style={{ 
-            padding: '1.5rem', 
-            backgroundColor: '#f8fafc', 
-            borderBottom: '1px solid #e2e8f0' 
+            padding: '1.5rem',
+            margin: '0',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            background: 'linear-gradient(to right, #3b82f6, #2563eb)'
           }}
         >
-          <Typography variant="h5" color="blue-gray">
-            Add New Menu Item
-          </Typography>
-          <Typography variant="paragraph" color="gray" style={{ marginTop: '0.5rem' }}>
-            Create a new item for your restaurant menu
-          </Typography>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <div style={{
+              width: '3rem',
+              height: '3rem',
+              backgroundColor: 'rgba(255, 255, 255, 0.2)',
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginRight: '1rem',
+              boxShadow: '0 2px 5px rgba(0, 0, 0, 0.1)'
+            }}>
+              <svg style={{ width: '1.75rem', height: '1.75rem', color: 'white' }} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+            </div>
+            <div>
+              <Typography variant="h5" color="white" style={{ fontWeight: 'bold', marginBottom: '0.25rem' }}>
+                Add New Menu Item
+              </Typography>
+              <Typography variant="small" color="white" style={{ opacity: 0.8 }}>
+                Create a new item for your restaurant menu
+              </Typography>
+            </div>
+          </div>
         </CardHeader>
-        
+
         <form onSubmit={handleSubmit}>
-          <CardBody style={{ padding: '2rem 1.5rem' }}>
-            <div style={{ marginBottom: '1.5rem' }}>
-              <Typography variant="small" color="blue-gray" style={{ 
-                marginBottom: '0.5rem', 
-                fontWeight: '500', 
-                display: 'block' 
+          <CardBody style={{ padding: '2.5rem' }}>
+            <div style={{ 
+              backgroundColor: '#f0f9ff', 
+              borderRadius: '0.75rem', 
+              padding: '1.5rem', 
+              marginBottom: '2rem',
+              border: '1px solid #e0f2fe',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '1rem'
+            }}>
+              <div style={{ 
+                minWidth: '3rem', 
+                height: '3rem', 
+                borderRadius: '50%', 
+                backgroundColor: '#dbeafe', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                color: '#2563eb'
               }}>
-                Select Restaurant
-              </Typography>
-              <Select
-                name="restaurantId"
-                value={formData.restaurantId}
-                onChange={handleRestaurantChange}
-                error={!!errors.restaurantId}
-                size="lg"
-              >
-                {restaurants.map(restaurant => (
-                  <Option key={restaurant._id} value={restaurant._id}>
-                    {restaurant.name}
-                  </Option>
-                ))}
-              </Select>
-              {errors.restaurantId && (
-                <Typography variant="small" color="red" style={{ marginTop: '0.25rem' }}>
-                  {errors.restaurantId}
+                <svg style={{ width: '1.5rem', height: '1.5rem' }} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div>
+                <Typography variant="h6" style={{ color: '#1e40af', fontWeight: '600', marginBottom: '0.25rem' }}>
+                  Menu Item Details
                 </Typography>
-              )}
-            </div>
-            
-            <div style={{ marginBottom: '1.5rem' }}>
-              <Typography variant="small" color="blue-gray" style={{ 
-                marginBottom: '0.5rem', 
-                fontWeight: '500', 
-                display: 'block' 
-              }}>
-                Item Name
-              </Typography>
-              <Input
-                name="name"
-                size="lg"
-                placeholder="e.g., Margherita Pizza"
-                value={formData.name}
-                onChange={handleChange}
-                error={!!errors.name}
-              />
-              {errors.name && (
-                <Typography variant="small" color="red" style={{ marginTop: '0.25rem' }}>
-                  {errors.name}
+                <Typography variant="small" style={{ color: '#6b7280' }}>
+                  Please fill in all required fields. The information will be displayed to customers.
                 </Typography>
-              )}
+              </div>
             </div>
-            
-            <div style={{ marginBottom: '1.5rem' }}>
-              <Typography variant="small" color="blue-gray" style={{ 
-                marginBottom: '0.5rem', 
-                fontWeight: '500', 
-                display: 'block' 
-              }}>
-                Description
-              </Typography>
-              <Textarea
-                name="description"
-                size="lg"
-                placeholder="Describe your menu item"
-                value={formData.description}
-                onChange={handleChange}
-                error={!!errors.description}
-              />
-              {errors.description && (
-                <Typography variant="small" color="red" style={{ marginTop: '0.25rem' }}>
-                  {errors.description}
-                </Typography>
-              )}
-            </div>
-            
-            <div style={{ display: 'flex', gap: '1.5rem', marginBottom: '1.5rem' }}>
-              <div style={{ flex: '1' }}>
-                <Typography variant="small" color="blue-gray" style={{ 
-                  marginBottom: '0.5rem', 
-                  fontWeight: '500', 
-                  display: 'block' 
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              {/* Restaurant Selection */}
+              <div>
+                <label htmlFor="restaurantId" style={{
+                  display: 'block',
+                  fontSize: '0.875rem',
+                  fontWeight: '500',
+                  color: '#374151',
+                  marginBottom: '0.5rem'
                 }}>
-                  Price ($)
-                </Typography>
-                <Input
-                  name="price"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  size="lg"
-                  placeholder="9.99"
-                  value={formData.price}
-                  onChange={handleChange}
-                  error={!!errors.price}
-                />
-                {errors.price && (
-                  <Typography variant="small" color="red" style={{ marginTop: '0.25rem' }}>
-                    {errors.price}
+                  Restaurant
+                </label>
+                <div style={{
+                  position: 'relative',
+                  borderRadius: '0.75rem',
+                  overflow: 'hidden',
+                  boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
+                }}>
+                  <Select
+                    name="restaurantId"
+                    value={formData.restaurantId}
+                    onChange={handleRestaurantChange}
+                    error={!!errors.restaurantId}
+                    size="lg"
+                    style={{
+                      width: '100%',
+                      padding: '1rem',
+                      backgroundColor: 'white',
+                      border: errors.restaurantId ? '1px solid #ef4444' : '1px solid #e5e7eb',
+                      borderRadius: '0.75rem',
+                      color: '#1f2937',
+                      fontSize: '1rem',
+                      transition: 'all 0.3s ease',
+                      outline: 'none'
+                    }}
+                  >
+                    {restaurants.map(restaurant => (
+                      <Option key={restaurant._id} value={restaurant._id}>
+                        {restaurant.name}
+                      </Option>
+                    ))}
+                  </Select>
+                </div>
+                {errors.restaurantId && (
+                  <Typography variant="small" style={{ color: '#ef4444', marginTop: '0.25rem', fontSize: '0.875rem' }}>
+                    {errors.restaurantId}
                   </Typography>
                 )}
               </div>
-              
-              <div style={{ flex: '1' }}>
-                <Typography variant="small" color="blue-gray" style={{ 
-                  marginBottom: '0.5rem', 
-                  fontWeight: '500', 
-                  display: 'block' 
+
+              {/* Name Field */}
+              <div>
+                <label htmlFor="name" style={{
+                  display: 'block',
+                  fontSize: '0.875rem',
+                  fontWeight: '500',
+                  color: '#374151',
+                  marginBottom: '0.5rem'
                 }}>
-                  Category
-                </Typography>
-                <Input
-                  name="category"
-                  size="lg"
-                  placeholder="e.g., Pizza, Dessert, Drinks"
-                  value={formData.category}
-                  onChange={handleChange}
-                  error={!!errors.category}
-                />
-                {errors.category && (
-                  <Typography variant="small" color="red" style={{ marginTop: '0.25rem' }}>
-                    {errors.category}
-                  </Typography>
-                )}
-              </div>
-            </div>
-            
-            {/* Updated Image handling */}
-            <div style={{ marginBottom: '1.5rem' }}>
-              <Typography variant="small" color="blue-gray" style={{ 
-                marginBottom: '0.5rem', 
-                fontWeight: '500', 
-                display: 'block' 
-              }}>
-                Item Image
-              </Typography>
-              <input
-                type="file"
-                id="menuItemImage"
-                onChange={handleImageChange}
-                accept="image/*"
-                style={{ marginTop: '5px', marginBottom: '15px' }}
-              />
-              {imagePreview && (
-                <div style={{ marginTop: '10px' }}>
-                  <img 
-                    src={imagePreview} 
-                    alt="Preview" 
-                    style={{ width: '100px', height: '100px', objectFit: 'cover' }}
+                  Item Name
+                </label>
+                <div style={{
+                  position: 'relative',
+                  borderRadius: '0.75rem',
+                  overflow: 'hidden',
+                  boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
+                }}>
+                  <Input
+                    name="name"
+                    size="lg"
+                    placeholder="e.g., Margherita Pizza"
+                    value={formData.name}
+                    onChange={handleChange}
+                    error={!!errors.name}
+                    style={{
+                      width: '100%',
+                      padding: '1rem',
+                      backgroundColor: 'white',
+                      border: errors.name ? '1px solid #ef4444' : '1px solid #e5e7eb',
+                      borderRadius: '0.75rem',
+                      color: '#1f2937',
+                      fontSize: '1rem',
+                      transition: 'all 0.3s ease',
+                      outline: 'none'
+                    }}
                   />
                 </div>
-              )}
-            </div>
-            
-            <div style={{ marginBottom: '1.5rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                {errors.name && (
+                  <Typography variant="small" style={{ color: '#ef4444', marginTop: '0.25rem', fontSize: '0.875rem' }}>
+                    {errors.name}
+                  </Typography>
+                )}
+              </div>
+
+              {/* Description Field */}
+              <div>
+                <label htmlFor="description" style={{
+                  display: 'block',
+                  fontSize: '0.875rem',
+                  fontWeight: '500',
+                  color: '#374151',
+                  marginBottom: '0.5rem'
+                }}>
+                  Description
+                </label>
+                <div style={{
+                  position: 'relative',
+                  borderRadius: '0.75rem',
+                  overflow: 'hidden',
+                  boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
+                }}>
+                  <Textarea
+                    name="description"
+                    size="lg"
+                    placeholder="Describe your menu item"
+                    value={formData.description}
+                    onChange={handleChange}
+                    error={!!errors.description}
+                    style={{
+                      width: '100%',
+                      padding: '1rem',
+                      backgroundColor: 'white',
+                      border: errors.description ? '1px solid #ef4444' : '1px solid #e5e7eb',
+                      borderRadius: '0.75rem',
+                      color: '#1f2937',
+                      fontSize: '1rem',
+                      transition: 'all 0.3s ease',
+                      outline: 'none',
+                      minHeight: '120px'
+                    }}
+                  />
+                </div>
+                {errors.description && (
+                  <Typography variant="small" style={{ color: '#ef4444', marginTop: '0.25rem', fontSize: '0.875rem' }}>
+                    {errors.description}
+                  </Typography>
+                )}
+              </div>
+
+              {/* Price and Category Fields */}
+              <div style={{ display: 'flex', gap: '1.5rem' }}>
+                {/* Price Field */}
+                <div style={{ flex: 1 }}>
+                  <label htmlFor="price" style={{
+                    display: 'block',
+                    fontSize: '0.875rem',
+                    fontWeight: '500',
+                    color: '#374151',
+                    marginBottom: '0.5rem'
+                  }}>
+                    Price ($)
+                  </label>
+                  <div style={{
+                    position: 'relative',
+                    borderRadius: '0.75rem',
+                    overflow: 'hidden',
+                    boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
+                  }}>
+                    <Input
+                      name="price"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      size="lg"
+                      placeholder="9.99"
+                      value={formData.price}
+                      onChange={handleChange}
+                      error={!!errors.price}
+                      style={{
+                        width: '100%',
+                        padding: '1rem',
+                        backgroundColor: 'white',
+                        border: errors.price ? '1px solid #ef4444' : '1px solid #e5e7eb',
+                        borderRadius: '0.75rem',
+                        color: '#1f2937',
+                        fontSize: '1rem',
+                        transition: 'all 0.3s ease',
+                        outline: 'none'
+                      }}
+                    />
+                  </div>
+                  {errors.price && (
+                    <Typography variant="small" style={{ color: '#ef4444', marginTop: '0.25rem', fontSize: '0.875rem' }}>
+                      {errors.price}
+                    </Typography>
+                  )}
+                </div>
+
+                {/* Category Field */}
+                <div style={{ flex: 1 }}>
+                  <label htmlFor="category" style={{
+                    display: 'block',
+                    fontSize: '0.875rem',
+                    fontWeight: '500',
+                    color: '#374151',
+                    marginBottom: '0.5rem'
+                  }}>
+                    Category
+                  </label>
+                  <div style={{
+                    position: 'relative',
+                    borderRadius: '0.75rem',
+                    overflow: 'hidden',
+                    boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
+                  }}>
+                    <Input
+                      name="category"
+                      size="lg"
+                      placeholder="e.g., Pizza, Dessert, Drinks"
+                      value={formData.category}
+                      onChange={handleChange}
+                      error={!!errors.category}
+                      style={{
+                        width: '100%',
+                        padding: '1rem',
+                        backgroundColor: 'white',
+                        border: errors.category ? '1px solid #ef4444' : '1px solid #e5e7eb',
+                        borderRadius: '0.75rem',
+                        color: '#1f2937',
+                        fontSize: '1rem',
+                        transition: 'all 0.3s ease',
+                        outline: 'none'
+                      }}
+                    />
+                  </div>
+                  {errors.category && (
+                    <Typography variant="small" style={{ color: '#ef4444', marginTop: '0.25rem', fontSize: '0.875rem' }}>
+                      {errors.category}
+                    </Typography>
+                  )}
+                </div>
+              </div>
+
+              {/* Image Upload */}
+              <div>
+                <label htmlFor="menuItemImage" style={{
+                  display: 'block',
+                  fontSize: '0.875rem',
+                  fontWeight: '500',
+                  color: '#374151',
+                  marginBottom: '0.5rem'
+                }}>
+                  Item Image
+                </label>
+                <div style={{
+                  position: 'relative',
+                  borderRadius: '0.75rem',
+                  overflow: 'hidden',
+                  boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
+                }}>
+                  <input
+                    type="file"
+                    id="menuItemImage"
+                    onChange={handleImageChange}
+                    accept="image/*"
+                    style={{
+                      width: '100%',
+                      padding: '1rem',
+                      backgroundColor: 'white',
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '0.75rem',
+                      color: '#1f2937',
+                      fontSize: '1rem',
+                      transition: 'all 0.3s ease',
+                      outline: 'none'
+                    }}
+                  />
+                </div>
+                {imagePreview && (
+                  <div style={{ marginTop: '1rem' }}>
+                    <img 
+                      src={imagePreview} 
+                      alt="Preview" 
+                      style={{ 
+                        width: '100px', 
+                        height: '100px', 
+                        objectFit: 'cover',
+                        borderRadius: '0.5rem',
+                        border: '1px solid #e5e7eb'
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Availability Switch */}
+              <div style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '0.5rem',
+                padding: '1rem',
+                backgroundColor: '#f9fafb',
+                borderRadius: '0.75rem',
+                border: '1px solid #e5e7eb'
+              }}>
                 <Switch
                   checked={formData.isAvailable}
                   onChange={handleAvailabilityChange}
                   color="blue"
                 />
-                <Typography variant="small" color="blue-gray">
-                  {formData.isAvailable ? 'Available' : 'Not Available'}
-                </Typography>
+                <div>
+                  <Typography variant="small" style={{ fontWeight: '500', color: '#374151' }}>
+                    {formData.isAvailable ? 'Available' : 'Not Available'}
+                  </Typography>
+                  <Typography variant="small" style={{ color: '#6b7280', fontSize: '0.75rem' }}>
+                    Toggle to show/hide this item on the menu
+                  </Typography>
+                </div>
               </div>
-              <Typography variant="small" color="gray" style={{ marginTop: '0.25rem' }}>
-                Toggle to show/hide this item on the menu
-              </Typography>
             </div>
           </CardBody>
-          
+
           <CardFooter style={{ 
             padding: '1.5rem', 
             backgroundColor: '#f8fafc', 
@@ -427,21 +630,50 @@ const AddMenuItem = () => {
               variant="outlined"
               onClick={handleCancel}
               disabled={saving}
+              style={{
+                padding: '0.875rem 1.75rem',
+                borderRadius: '0.75rem',
+                fontWeight: '600',
+                fontSize: '1rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
+              }}
             >
+              <svg style={{ width: '1.25rem', height: '1.25rem' }} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
               Cancel
             </Button>
             <Button
               type="submit"
               color="blue"
               disabled={saving}
-              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+              style={{
+                padding: '0.875rem 2.5rem',
+                borderRadius: '0.75rem',
+                fontWeight: '600',
+                fontSize: '1rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                background: 'linear-gradient(to right, #3b82f6, #2563eb)',
+                boxShadow: '0 4px 6px -1px rgba(59, 130, 246, 0.3), 0 2px 4px -1px rgba(59, 130, 246, 0.1)'
+              }}
             >
               {saving ? (
                 <>
                   <Spinner style={{ height: '1rem', width: '1rem' }} />
                   Creating...
                 </>
-              ) : 'Create Menu Item'}
+              ) : (
+                <>
+                  <svg style={{ width: '1.25rem', height: '1.25rem' }} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  Create Menu Item
+                </>
+              )}
             </Button>
           </CardFooter>
         </form>

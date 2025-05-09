@@ -98,7 +98,7 @@ const handleEdit = (userId) => {
             alignItems: 'center'
           }}
         >
-          <Typography variant="h5" color="white">
+          <Typography variant="h5" color="black">
             User Management
           </Typography>
         </CardHeader>

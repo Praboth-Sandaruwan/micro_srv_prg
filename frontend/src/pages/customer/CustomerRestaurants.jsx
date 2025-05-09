@@ -92,12 +92,12 @@ const CustomerRestaurants = () => {
         alignItems: 'center',
         marginBottom: '2rem' 
       }}>
-        <div>
+        {/* <div>
           <Typography variant="h3">My Restaurants</Typography>
           <Typography variant="paragraph" color="blue-gray" style={{ marginTop: '0.5rem' }}>
             Manage your registered restaurants
           </Typography>
-        </div>
+        </div> */}
         <Button 
           color="blue"
           onClick={handleAddRestaurant}
@@ -208,36 +208,7 @@ const CustomerRestaurants = () => {
                   </Typography>
                 )}
               </CardBody>
-              <CardHeader
-                style={{ 
-                  padding: '0.75rem 1rem', 
-                  backgroundColor: '#f8fafc', 
-                  borderTop: '1px solid #e2e8f0',
-                  marginTop: 'auto'
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Button 
-                    color="blue" 
-                    size="sm" 
-                    variant="text"
-                    onClick={() => navigate(`/customer/restaurants/${restaurant._id}/details`)}
-                  >
-                    View Details
-                  </Button>
-                  
-                  {restaurant.status === 'approved' && (
-                    <Button 
-                      color="green" 
-                      size="sm" 
-                      variant="text"
-                      onClick={() => navigate(`/customer/restaurants/${restaurant._id}/menu`)}
-                    >
-                      Manage Menu
-                    </Button>
-                  )}
-                </div>
-              </CardHeader>
+             
             </Card>
           ))}
         </div>

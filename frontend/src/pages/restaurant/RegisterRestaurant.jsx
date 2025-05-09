@@ -218,112 +218,412 @@ const RegisterRestaurant = () => {
   };
 
   return (
-    <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px', marginTop: '20px' }}></div>
-      <div style={{ padding: '20px', borderRadius: '10px', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.5)', backgroundColor: 'rgba(255, 255, 255, 0.8)', backdropFilter: 'blur(10px)', marginBottom: '30px' }}>
-        <h2 style={{ textAlign: 'center', marginBottom: '30px', fontWeight: 'bold', color: 'black', fontSize: '20px' }}>Register New Restaurant</h2>
-        <div>
-          <div>
-            <form onSubmit={handleSubmit}>
-              <div style={{ marginTop: '5px', marginBottom: '15px' }}>
-                <label htmlFor="restaurantName">Restaurant Name</label>
-                <input
-                  id="restaurantName"
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid #ccc', marginTop: '5px', marginBottom: '5px' }}
-                />
-                {errors.name && <span style={{ color: 'red', fontSize: '12px' }}>{errors.name}</span>}
+    <div style={{ 
+      padding: '2rem',
+      maxWidth: '1024px',
+      margin: '0 auto',
+      backgroundImage: 'linear-gradient(to bottom, #f9fafb, #ffffff)',
+      minHeight: 'calc(100vh - 4rem)'
+    }}>
+      <div style={{ boxShadow: '0 10px 20px rgba(0, 0, 0, 0.1)', borderRadius: '1rem', overflow: 'hidden' }}>
+        <div
+          style={{ 
+            padding: '1.5rem',
+            margin: '0',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            background: 'linear-gradient(to right, #3b82f6, #2563eb)'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <div style={{
+              width: '3rem',
+              height: '3rem',
+              backgroundColor: 'rgba(255, 255, 255, 0.2)',
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginRight: '1rem',
+              boxShadow: '0 2px 5px rgba(0, 0, 0, 0.1)'
+            }}>
+              <svg style={{ width: '1.75rem', height: '1.75rem', color: 'white' }} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+              </svg>
+            </div>
+            <div>
+              <h2 style={{ color: 'white', fontWeight: 'bold', marginBottom: '0.25rem', fontSize: '1.25rem' }}>
+                Register New Restaurant
+              </h2>
+              <p style={{ color: 'white', opacity: 0.8, fontSize: '0.875rem' }}>
+                Fill in all required fields to register your restaurant
+              </p>
+            </div>
+          </div>
+        </div>
+        
+        <div style={{ padding: '2.5rem', backgroundColor: 'white' }}>
+          <div style={{ 
+            backgroundColor: '#f0f9ff', 
+            borderRadius: '0.75rem', 
+            padding: '1.5rem', 
+            marginBottom: '2rem',
+            border: '1px solid #e0f2fe',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '1rem'
+          }}>
+            <div style={{ 
+              minWidth: '3rem', 
+              height: '3rem', 
+              borderRadius: '50%', 
+              backgroundColor: '#dbeafe', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              color: '#2563eb'
+            }}>
+              <svg style={{ width: '1.5rem', height: '1.5rem' }} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div>
+              <h3 style={{ color: '#1e40af', fontWeight: '600', marginBottom: '0.25rem', fontSize: '1.125rem' }}>
+                Restaurant Information
+              </h3>
+              <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>
+                Please fill in all required fields. The information will be used to display your restaurant to customers.
+              </p>
+            </div>
+          </div>
+          
+          <form onSubmit={handleSubmit} style={{ marginBottom: '1.5rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              {/* Name Field */}
+              <div style={{ marginBottom: '1.5rem' }}>
+                <label htmlFor="restaurantName" style={{
+                  display: 'block',
+                  fontSize: '0.875rem',
+                  fontWeight: '500',
+                  color: '#374151',
+                  marginBottom: '0.5rem'
+                }}>
+                  Restaurant Name
+                </label>
+                <div style={{
+                  position: 'relative',
+                  borderRadius: '0.75rem',
+                  overflow: 'hidden',
+                  boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
+                }}>
+                  <input
+                    id="restaurantName"
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    style={{
+                      width: '100%',
+                      padding: '1rem',
+                      backgroundColor: 'white',
+                      border: errors.name ? '1px solid #ef4444' : '1px solid #e5e7eb',
+                      borderRadius: '0.75rem',
+                      color: '#1f2937',
+                      fontSize: '1rem',
+                      transition: 'all 0.3s ease',
+                      outline: 'none'
+                    }}
+                    placeholder="Restaurant Name"
+                    onFocus={(e) => {
+                      e.target.style.borderColor = '#3b82f6';
+                      e.target.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.2)';
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = errors.name ? '#ef4444' : '#e5e7eb';
+                      e.target.style.boxShadow = 'none';
+                    }}
+                  />
+                </div>
+                {errors.name && (
+                  <p style={{ color: '#ef4444', marginTop: '0.25rem', fontSize: '0.875rem' }}>
+                    {errors.name}
+                  </p>
+                )}
               </div>
-              
-              <div style={{ marginTop: '5px', marginBottom: '15px' }}>
-                <label htmlFor="description">Description</label>
+  
+              {/* Description Field */}
+              <div style={{ marginBottom: '1.5rem' }}>
+                <label htmlFor="description" style={{
+                  display: 'block',
+                  fontSize: '0.875rem',
+                  fontWeight: '500',
+                  color: '#374151',
+                  marginBottom: '0.5rem'
+                }}>
+                  Description
+                </label>
                 <textarea
                   id="description"
                   name="description"
                   value={formData.description}
                   onChange={handleChange}
                   rows="4"
-                  style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid #ccc', marginTop: '5px', marginBottom: '15px' }}
+                  style={{
+                    width: '100%',
+                    padding: '1rem',
+                    backgroundColor: 'white',
+                    border: errors.description ? '1px solid #ef4444' : '1px solid #e5e7eb',
+                    borderRadius: '0.75rem',
+                    color: '#1f2937',
+                    fontSize: '1rem',
+                    transition: 'all 0.3s ease',
+                    outline: 'none'
+                  }}
+                  placeholder="Describe your restaurant"
+                  onFocus={(e) => {
+                    e.target.style.borderColor = '#3b82f6';
+                    e.target.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.2)';
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = errors.description ? '#ef4444' : '#e5e7eb';
+                    e.target.style.boxShadow = 'none';
+                  }}
                 ></textarea>
-                {errors.description && <span style={{ color: 'red', fontSize: '12px' }}>{errors.description}</span>}
+                {errors.description && (
+                  <p style={{ color: '#ef4444', marginTop: '0.25rem', fontSize: '0.875rem' }}>
+                    {errors.description}
+                  </p>
+                )}
               </div>
-              
-              <div style={{ marginTop: '5px', marginBottom: '15px' }}>
-                <label htmlFor="cuisine">Cuisine Type</label>
-                <div style={{ position: 'relative' }}>
+  
+              {/* Cuisine Type Field */}
+              <div style={{ marginBottom: '1.5rem' }}>
+                <label htmlFor="cuisine" style={{
+                  display: 'block',
+                  fontSize: '0.875rem',
+                  fontWeight: '500',
+                  color: '#374151',
+                  marginBottom: '0.5rem'
+                }}>
+                  Cuisine Type
+                </label>
+                <div style={{
+                  position: 'relative',
+                  borderRadius: '0.75rem',
+                  overflow: 'hidden',
+                  boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
+                }}>
                   <select
                     id="cuisine"
                     name="cuisine"
                     value={formData.cuisine}
                     onChange={(e) => handleCuisineChange(e.target.value)}
-                    style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid #ccc', marginTop: '5px', marginBottom: '5px' }}
+                    style={{
+                      width: '100%',
+                      padding: '1rem',
+                      backgroundColor: 'white',
+                      border: errors.cuisine ? '1px solid #ef4444' : '1px solid #e5e7eb',
+                      borderRadius: '0.75rem',
+                      color: '#1f2937',
+                      fontSize: '1rem',
+                      transition: 'all 0.3s ease',
+                      outline: 'none',
+                      appearance: 'none',
+                      cursor: 'pointer'
+                    }}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = '#3b82f6';
+                      e.target.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.2)';
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = errors.cuisine ? '#ef4444' : '#e5e7eb';
+                      e.target.style.boxShadow = 'none';
+                    }}
                   >
                     <option value="">Select Cuisine Type</option>
                     {cuisineTypes.map((type) => (
                       <option key={type} value={type}>{type}</option>
                     ))}
                   </select>
+                  <div style={{
+                    position: 'absolute',
+                    right: '1rem',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    color: '#9ca3af',
+                    pointerEvents: 'none'
+                  }}>
+                    <svg style={{ width: '1.25rem', height: '1.25rem' }} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
                 </div>
-                {errors.cuisine && <span style={{ color: 'red', fontSize: '12px' }}>{errors.cuisine}</span>}
+                {errors.cuisine && (
+                  <p style={{ color: '#ef4444', marginTop: '0.25rem', fontSize: '0.875rem' }}>
+                    {errors.cuisine}
+                  </p>
+                )}
               </div>
-              
-              <div style={{ marginBottom: '15px' }}>
-                <h3 style={{ marginBottom: '10px' }}>Restaurant Image</h3>
+  
+              {/* Restaurant Image Field */}
+              <div style={{ marginBottom: '1.5rem' }}>
+                <label htmlFor="restaurantImage" style={{
+                  display: 'block',
+                  fontSize: '0.875rem',
+                  fontWeight: '500',
+                  color: '#374151',
+                  marginBottom: '0.5rem'
+                }}>
+                  Restaurant Image
+                </label>
                 <input
                   type="file"
                   id="restaurantImage"
                   onChange={handleImageChange}
                   accept="image/*"
-                  style={{ marginTop: '5px', marginBottom: '15px' }}
+                  style={{
+                    width: '100%',
+                    padding: '1rem',
+                    backgroundColor: 'white',
+                    border: errors.image ? '1px solid #ef4444' : '1px solid #e5e7eb',
+                    borderRadius: '0.75rem',
+                    color: '#1f2937',
+                    fontSize: '1rem',
+                    transition: 'all 0.3s ease',
+                    outline: 'none'
+                  }}
                 />
                 {imagePreview && (
-                  <div style={{ marginTop: '10px' }}>
+                  <div style={{ marginTop: '1rem' }}>
                     <img 
                       src={imagePreview} 
                       alt="Preview" 
-                      style={{ width: '100px', height: '100px', objectFit: 'cover' }}
+                      style={{ 
+                        width: '100px', 
+                        height: '100px', 
+                        objectFit: 'cover',
+                        borderRadius: '0.5rem',
+                        border: '1px solid #e5e7eb'
+                      }}
                     />
                   </div>
                 )}
-                {errors.image && <span style={{ color: 'red', fontSize: '12px' }}>{errors.image}</span>}
-                <small style={{ display: 'block', color: '#666', marginTop: '5px' }}>
+                {errors.image && (
+                  <p style={{ color: '#ef4444', marginTop: '0.25rem', fontSize: '0.875rem' }}>
+                    {errors.image}
+                  </p>
+                )}
+                <p style={{ display: 'block', color: '#6b7280', marginTop: '0.5rem', fontSize: '0.875rem' }}>
                   Please use a small image file (less than 1MB) to avoid upload issues.
-                </small>
+                </p>
               </div>
-
-              <div style={{ marginTop: '5px', marginBottom: '15px' }}>
-                <label htmlFor="email">Email</label>
+  
+              {/* Email Field */}
+              <div style={{ marginBottom: '1.5rem' }}>
+                <label htmlFor="email" style={{
+                  display: 'block',
+                  fontSize: '0.875rem',
+                  fontWeight: '500',
+                  color: '#374151',
+                  marginBottom: '0.5rem'
+                }}>
+                  Email
+                </label>
                 <input
                   id="email"
                   type="email"
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
-                  style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid #ccc', marginTop: '5px', marginBottom: '5px' }}
+                  style={{
+                    width: '100%',
+                    padding: '1rem',
+                    backgroundColor: 'white',
+                    border: errors.email ? '1px solid #ef4444' : '1px solid #e5e7eb',
+                    borderRadius: '0.75rem',
+                    color: '#1f2937',
+                    fontSize: '1rem',
+                    transition: 'all 0.3s ease',
+                    outline: 'none'
+                  }}
+                  placeholder="restaurant@example.com"
+                  onFocus={(e) => {
+                    e.target.style.borderColor = '#3b82f6';
+                    e.target.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.2)';
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = errors.email ? '#ef4444' : '#e5e7eb';
+                    e.target.style.boxShadow = 'none';
+                  }}
                 />
-                {errors.email && <span style={{ color: 'red', fontSize: '12px' }}>{errors.email}</span>}
+                {errors.email && (
+                  <p style={{ color: '#ef4444', marginTop: '0.25rem', fontSize: '0.875rem' }}>
+                    {errors.email}
+                  </p>
+                )}
               </div>
-              
-              <div style={{ marginTop: '5px', marginBottom: '15px' }}>
-                <label htmlFor="contactNumber">Contact Number</label>
+  
+              {/* Contact Number Field */}
+              <div style={{ marginBottom: '1.5rem' }}>
+                <label htmlFor="contactNumber" style={{
+                  display: 'block',
+                  fontSize: '0.875rem',
+                  fontWeight: '500',
+                  color: '#374151',
+                  marginBottom: '0.5rem'
+                }}>
+                  Contact Number
+                </label>
                 <input
                   id="contactNumber"
                   type="text"
                   name="contactNumber"
                   value={formData.contactNumber}
                   onChange={handleChange}
-                  style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid #ccc', marginTop: '5px', marginBottom: '5px' }}
+                  style={{
+                    width: '100%',
+                    padding: '1rem',
+                    backgroundColor: 'white',
+                    border: errors.contactNumber ? '1px solid #ef4444' : '1px solid #e5e7eb',
+                    borderRadius: '0.75rem',
+                    color: '#1f2937',
+                    fontSize: '1rem',
+                    transition: 'all 0.3s ease',
+                    outline: 'none'
+                  }}
+                  placeholder="1234567890"
+                  onFocus={(e) => {
+                    e.target.style.borderColor = '#3b82f6';
+                    e.target.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.2)';
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = errors.contactNumber ? '#ef4444' : '#e5e7eb';
+                    e.target.style.boxShadow = 'none';
+                  }}
                 />
-                {errors.contactNumber && <span style={{ color: 'red', fontSize: '12px' }}>{errors.contactNumber}</span>}
+                {errors.contactNumber && (
+                  <p style={{ color: '#ef4444', marginTop: '0.25rem', fontSize: '0.875rem' }}>
+                    {errors.contactNumber}
+                  </p>
+                )}
               </div>
-
-              <div style={{ marginTop: '5px', marginBottom: '15px' }}>
-                <h3 style={{ marginBottom: '10px' }}>Location Coordinates</h3>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                  <span>Enter coordinates or use auto-fill:</span>
+  
+              {/* Location Coordinates */}
+              <div style={{ marginBottom: '1.5rem' }}>
+                <div style={{ 
+                  display: 'flex', 
+                  justifyContent: 'space-between', 
+                  alignItems: 'center',
+                  marginBottom: '1rem'
+                }}>
+                  <h3 style={{ 
+                    fontSize: '1rem',
+                    fontWeight: '600',
+                    color: '#374151'
+                  }}>
+                    Location Coordinates
+                  </h3>
                   <button
                     type="button"
                     onClick={handleGetCurrentLocation}
@@ -332,21 +632,34 @@ const RegisterRestaurant = () => {
                       backgroundColor: '#4CAF50', 
                       color: 'white', 
                       border: 'none',
-                      borderRadius: '5px',
-                      padding: '8px 15px',
+                      borderRadius: '0.75rem',
+                      padding: '0.75rem 1.5rem',
                       cursor: locationLoading ? 'not-allowed' : 'pointer',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '5px'
+                      gap: '0.5rem',
+                      fontSize: '0.875rem',
+                      fontWeight: '500',
+                      transition: 'all 0.3s ease'
                     }}
+                    onMouseEnter={(e) => !locationLoading && (e.currentTarget.style.transform = 'translateY(-2px)')}
+                    onMouseLeave={(e) => !locationLoading && (e.currentTarget.style.transform = 'translateY(0)')}
                   >
                     {locationLoading && <LoadingSpinner size="sm" />}
                     Auto-fill My Location
                   </button>
                 </div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '15px', marginBottom: '15px' }}>
-                  <div style={{ flex: '1 1 45%' }}>
-                    <label htmlFor="latitude">Latitude</label>
+                <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
+                  <div style={{ flex: 1 }}>
+                    <label htmlFor="latitude" style={{
+                      display: 'block',
+                      fontSize: '0.875rem',
+                      fontWeight: '500',
+                      color: '#374151',
+                      marginBottom: '0.5rem'
+                    }}>
+                      Latitude
+                    </label>
                     <input
                       id="latitude"
                       type="number"
@@ -355,13 +668,35 @@ const RegisterRestaurant = () => {
                       value={formData.location.latitude}
                       onChange={handleChange}
                       placeholder="e.g. 37.7749"
-                      style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid #ccc', marginTop: '5px', marginBottom: '5px' }}
+                      style={{
+                        width: '100%',
+                        padding: '1rem',
+                        backgroundColor: 'white',
+                        border: errors.latitude ? '1px solid #ef4444' : '1px solid #e5e7eb',
+                        borderRadius: '0.75rem',
+                        color: '#1f2937',
+                        fontSize: '1rem',
+                        transition: 'all 0.3s ease',
+                        outline: 'none'
+                      }}
                     />
-                    {errors.latitude && <span style={{ color: 'red', fontSize: '12px' }}>{errors.latitude}</span>}
+                    {errors.latitude && (
+                      <p style={{ color: '#ef4444', marginTop: '0.25rem', fontSize: '0.875rem' }}>
+                        {errors.latitude}
+                      </p>
+                    )}
                   </div>
                   
-                  <div style={{ flex: '1 1 45%' }}>
-                    <label htmlFor="longitude">Longitude</label>
+                  <div style={{ flex: 1 }}>
+                    <label htmlFor="longitude" style={{
+                      display: 'block',
+                      fontSize: '0.875rem',
+                      fontWeight: '500',
+                      color: '#374151',
+                      marginBottom: '0.5rem'
+                    }}>
+                      Longitude
+                    </label>
                     <input
                       id="longitude"
                       type="number"
@@ -370,120 +705,358 @@ const RegisterRestaurant = () => {
                       value={formData.location.longitude}
                       onChange={handleChange}
                       placeholder="e.g. -122.4194"
-                      style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid #ccc', marginTop: '5px', marginBottom: '5px' }}
+                      style={{
+                        width: '100%',
+                        padding: '1rem',
+                        backgroundColor: 'white',
+                        border: errors.longitude ? '1px solid #ef4444' : '1px solid #e5e7eb',
+                        borderRadius: '0.75rem',
+                        color: '#1f2937',
+                        fontSize: '1rem',
+                        transition: 'all 0.3s ease',
+                        outline: 'none'
+                      }}
                     />
-                    {errors.longitude && <span style={{ color: 'red', fontSize: '12px' }}>{errors.longitude}</span>}
+                    {errors.longitude && (
+                      <p style={{ color: '#ef4444', marginTop: '0.25rem', fontSize: '0.875rem' }}>
+                        {errors.longitude}
+                      </p>
+                    )}
                   </div>
                 </div>
-                <small style={{ display: 'block', color: '#666', marginTop: '5px' }}>
+                <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>
                   Enter the geographic coordinates of your restaurant location or use the auto-fill button to get your current location.
-                </small>
+                </p>
               </div>
-
-              <div style={{ marginTop: '5px', marginBottom: '15px' }}>
-                <label htmlFor="street">Street</label>
-                <input
-                  id="street"
-                  type="text"
-                  name="address.street"
-                  value={formData.address.street}
-                  onChange={handleChange}
-                  style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid #ccc', marginTop: '5px', marginBottom: '5px' }}
-                />
-                {errors.street && <span style={{ color: 'red', fontSize: '12px' }}>{errors.street}</span>}
-              </div>
-              
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '15px', marginBottom: '15px' }}>
-                <div style={{ flex: '1 1 30%' }}>
-                  <label htmlFor="city">City</label>
+  
+              {/* Address Fields */}
+              <div style={{ marginBottom: '1.5rem' }}>
+                <h3 style={{ 
+                  fontSize: '1rem',
+                  fontWeight: '600',
+                  color: '#374151',
+                  marginBottom: '1rem'
+                }}>
+                  Address
+                </h3>
+                
+                <div style={{ marginBottom: '1rem' }}>
+                  <label htmlFor="street" style={{
+                    display: 'block',
+                    fontSize: '0.875rem',
+                    fontWeight: '500',
+                    color: '#374151',
+                    marginBottom: '0.5rem'
+                  }}>
+                    Street
+                  </label>
                   <input
-                    id="city"
+                    id="street"
                     type="text"
-                    name="address.city"
-                    value={formData.address.city}
+                    name="address.street"
+                    value={formData.address.street}
                     onChange={handleChange}
-                    style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid #ccc', marginTop: '5px', marginBottom: '5px', fontSize: 'small' }}
+                    style={{
+                      width: '100%',
+                      padding: '1rem',
+                      backgroundColor: 'white',
+                      border: errors.street ? '1px solid #ef4444' : '1px solid #e5e7eb',
+                      borderRadius: '0.75rem',
+                      color: '#1f2937',
+                      fontSize: '1rem',
+                      transition: 'all 0.3s ease',
+                      outline: 'none'
+                    }}
+                    placeholder="123 Main St"
                   />
-                  {errors.city && <span style={{ color: 'red', fontSize: '12px' }}>{errors.city}</span>}
+                  {errors.street && (
+                    <p style={{ color: '#ef4444', marginTop: '0.25rem', fontSize: '0.875rem' }}>
+                      {errors.street}
+                    </p>
+                  )}
                 </div>
                 
-                <div style={{ flex: '1 1 30%' }}>
-                  <label htmlFor="state">State</label>
-                  <input
-                    id="state"
-                    type="text"
-                    name="address.state"
-                    value={formData.address.state}
-                    onChange={handleChange}
-                    style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid #ccc', marginTop: '5px', marginBottom: '5px', fontSize: 'small' }}
-                  />
-                  {errors.state && <span style={{ color: 'red', fontSize: '12px' }}>{errors.state}</span>}
-                </div>
-                
-                <div style={{ flex: '1 1 30%' }}>
-                  <label htmlFor="zipCode">ZIP Code</label>
-                  <input
-                    id="zipCode"
-                    type="text"
-                    name="address.zipCode"
-                    value={formData.address.zipCode}
-                    onChange={handleChange}
-                    style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid #ccc', marginTop: '5px', marginBottom: '5px', fontSize: 'small' }}
-                  />
-                  {errors.zipCode && <span style={{ color: 'red', fontSize: '12px' }}>{errors.zipCode}</span>}
+                <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
+                  <div style={{ flex: 1 }}>
+                    <label htmlFor="city" style={{
+                      display: 'block',
+                      fontSize: '0.875rem',
+                      fontWeight: '500',
+                      color: '#374151',
+                      marginBottom: '0.5rem'
+                    }}>
+                      City
+                    </label>
+                    <input
+                      id="city"
+                      type="text"
+                      name="address.city"
+                      value={formData.address.city}
+                      onChange={handleChange}
+                      style={{
+                        width: '100%',
+                        padding: '1rem',
+                        backgroundColor: 'white',
+                        border: errors.city ? '1px solid #ef4444' : '1px solid #e5e7eb',
+                        borderRadius: '0.75rem',
+                        color: '#1f2937',
+                        fontSize: '1rem',
+                        transition: 'all 0.3s ease',
+                        outline: 'none'
+                      }}
+                      placeholder="City"
+                    />
+                    {errors.city && (
+                      <p style={{ color: '#ef4444', marginTop: '0.25rem', fontSize: '0.875rem' }}>
+                        {errors.city}
+                      </p>
+                    )}
+                  </div>
+                  
+                  <div style={{ flex: 1 }}>
+                    <label htmlFor="state" style={{
+                      display: 'block',
+                      fontSize: '0.875rem',
+                      fontWeight: '500',
+                      color: '#374151',
+                      marginBottom: '0.5rem'
+                    }}>
+                      State
+                    </label>
+                    <input
+                      id="state"
+                      type="text"
+                      name="address.state"
+                      value={formData.address.state}
+                      onChange={handleChange}
+                      style={{
+                        width: '100%',
+                        padding: '1rem',
+                        backgroundColor: 'white',
+                        border: errors.state ? '1px solid #ef4444' : '1px solid #e5e7eb',
+                        borderRadius: '0.75rem',
+                        color: '#1f2937',
+                        fontSize: '1rem',
+                        transition: 'all 0.3s ease',
+                        outline: 'none'
+                      }}
+                      placeholder="State"
+                    />
+                    {errors.state && (
+                      <p style={{ color: '#ef4444', marginTop: '0.25rem', fontSize: '0.875rem' }}>
+                        {errors.state}
+                      </p>
+                    )}
+                  </div>
+                  
+                  <div style={{ flex: 1 }}>
+                    <label htmlFor="zipCode" style={{
+                      display: 'block',
+                      fontSize: '0.875rem',
+                      fontWeight: '500',
+                      color: '#374151',
+                      marginBottom: '0.5rem'
+                    }}>
+                      ZIP Code
+                    </label>
+                    <input
+                      id="zipCode"
+                      type="text"
+                      name="address.zipCode"
+                      value={formData.address.zipCode}
+                      onChange={handleChange}
+                      style={{
+                        width: '100%',
+                        padding: '1rem',
+                        backgroundColor: 'white',
+                        border: errors.zipCode ? '1px solid #ef4444' : '1px solid #e5e7eb',
+                        borderRadius: '0.75rem',
+                        color: '#1f2937',
+                        fontSize: '1rem',
+                        transition: 'all 0.3s ease',
+                        outline: 'none'
+                      }}
+                      placeholder="12345"
+                    />
+                    {errors.zipCode && (
+                      <p style={{ color: '#ef4444', marginTop: '0.25rem', fontSize: '0.875rem' }}>
+                        {errors.zipCode}
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
-
-              <div style={{ marginTop: '5px', marginBottom: '15px' }}>
-                <h3 style={{ marginBottom: '10px' }}>Operating Hours</h3>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '15px', marginBottom: '15px' }}>
-                  <div style={{ flex: '1 1 45%' }}>
-                    <label htmlFor="startTime">Start Time</label>
+  
+              {/* Operating Hours */}
+              <div style={{ marginBottom: '1.5rem' }}>
+                <h3 style={{ 
+                  fontSize: '1rem',
+                  fontWeight: '600',
+                  color: '#374151',
+                  marginBottom: '1rem'
+                }}>
+                  Operating Hours
+                </h3>
+                <div style={{ display: 'flex', gap: '1rem' }}>
+                  <div style={{ flex: 1 }}>
+                    <label htmlFor="startTime" style={{
+                      display: 'block',
+                      fontSize: '0.875rem',
+                      fontWeight: '500',
+                      color: '#374151',
+                      marginBottom: '0.5rem'
+                    }}>
+                      Start Time
+                    </label>
                     <input
                       id="startTime"
                       type="time"
                       name="operatingHours.startTime"
                       value={formData.operatingHours.startTime}
                       onChange={handleChange}
-                      style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid #ccc', marginTop: '5px', marginBottom: '5px' }}
+                      style={{
+                        width: '100%',
+                        padding: '1rem',
+                        backgroundColor: 'white',
+                        border: errors.startTime ? '1px solid #ef4444' : '1px solid #e5e7eb',
+                        borderRadius: '0.75rem',
+                        color: '#1f2937',
+                        fontSize: '1rem',
+                        transition: 'all 0.3s ease',
+                        outline: 'none'
+                      }}
                     />
-                    {errors.startTime && <span style={{ color: 'red', fontSize: '12px' }}>{errors.startTime}</span>}
+                    {errors.startTime && (
+                      <p style={{ color: '#ef4444', marginTop: '0.25rem', fontSize: '0.875rem' }}>
+                        {errors.startTime}
+                      </p>
+                    )}
                   </div>
                   
-                  <div style={{ flex: '1 1 45%' }}>
-                    <label htmlFor="endTime">End Time</label>
+                  <div style={{ flex: 1 }}>
+                    <label htmlFor="endTime" style={{
+                      display: 'block',
+                      fontSize: '0.875rem',
+                      fontWeight: '500',
+                      color: '#374151',
+                      marginBottom: '0.5rem'
+                    }}>
+                      End Time
+                    </label>
                     <input
                       id="endTime"
                       type="time"
                       name="operatingHours.endTime"
                       value={formData.operatingHours.endTime}
                       onChange={handleChange}
-                      style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid #ccc', marginTop: '5px', marginBottom: '5px' }}
+                      style={{
+                        width: '100%',
+                        padding: '1rem',
+                        backgroundColor: 'white',
+                        border: errors.endTime ? '1px solid #ef4444' : '1px solid #e5e7eb',
+                        borderRadius: '0.75rem',
+                        color: '#1f2937',
+                        fontSize: '1rem',
+                        transition: 'all 0.3s ease',
+                        outline: 'none'
+                      }}
                     />
-                    {errors.endTime && <span style={{ color: 'red', fontSize: '12px' }}>{errors.endTime}</span>}
+                    {errors.endTime && (
+                      <p style={{ color: '#ef4444', marginTop: '0.25rem', fontSize: '0.875rem' }}>
+                        {errors.endTime}
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
-
-              <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginTop: '20px' }}>
+  
+              {/* Buttons */}
+              <div style={{ 
+                borderTop: '1px solid #e5e7eb', 
+                paddingTop: '1.5rem',
+                marginTop: '1.5rem',
+                display: 'flex', 
+                justifyContent: 'space-between',
+                gap: '1rem'
+              }}>
                 <button
                   type="button"
                   onClick={() => navigate('/restaurant/dashboard')}
-                  style={{ backgroundColor: '#d3d3d3', color: '#000', borderRadius: '5px', padding: '10px 20px' }}
+                  style={{
+                    padding: '1rem 2rem',
+                    backgroundColor: '#f3f4f6',
+                    color: '#374151',
+                    fontWeight: '600',
+                    borderRadius: '0.75rem',
+                    border: '1px solid #e5e7eb',
+                    fontSize: '1rem',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = '#e5e7eb';
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = '#f3f4f6';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                  }}
                 >
+                  <svg style={{ 
+                    width: '1.25rem',
+                    height: '1.25rem',
+                    marginRight: '0.75rem'
+                  }} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
                   Cancel
                 </button>
+                
                 <button
                   type="submit"
                   disabled={loading}
-                  style={{ backgroundColor: '#248FDD', color: '#fff', borderRadius: '5px', padding: '10px 20px', display: 'flex', alignItems: 'center', gap: '5px' }}
+                  style={{
+                    padding: '1rem 3rem',
+                    background: 'linear-gradient(to right, #3b82f6, #2563eb)',
+                    color: 'white',
+                    fontWeight: '600',
+                    borderRadius: '0.75rem',
+                    border: 'none',
+                    fontSize: '1rem',
+                    cursor: loading ? 'not-allowed' : 'pointer',
+                    transition: 'all 0.3s ease',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    boxShadow: '0 4px 6px -1px rgba(59, 130, 246, 0.3), 0 2px 4px -1px rgba(59, 130, 246, 0.1)'
+                  }}
+                  onMouseEnter={(e) => !loading && (e.currentTarget.style.transform = 'translateY(-2px)')}
+                  onMouseLeave={(e) => !loading && (e.currentTarget.style.transform = 'translateY(0)')}
                 >
-                  {loading && <LoadingSpinner size="sm" />}
-                  Register Restaurant
+                  {loading ? (
+                    <span style={{ display: 'flex', alignItems: 'center' }}>
+                      <LoadingSpinner size="sm" />
+                      <span style={{ marginLeft: '0.5rem' }}>Registering...</span>
+                    </span>
+                  ) : (
+                    <>
+                      <svg style={{ 
+                        width: '1.25rem',
+                        height: '1.25rem',
+                        marginRight: '0.75rem'
+                      }} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      Register Restaurant
+                    </>
+                  )}
                 </button>
               </div>
-            </form>
-          </div>
+            </div>
+          </form>
         </div>
       </div>
     </div>
