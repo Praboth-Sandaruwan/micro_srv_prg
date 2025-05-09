@@ -10,8 +10,8 @@ const router = express.Router();
 // @route   GET api/users
 // @desc    Get all users
 // @access  Private/Admin
-// router.get('/', auth, checkRole('admin'), userController.getAllUsers);
-router.get('/', userController.getAllUsers); //for testing purposes
+router.get('/', auth, checkRole('admin'), userController.getAllUsers);
+//router.get('/', userController.getAllUsers); //for testing purposes
 
 // @route   GET api/users/:id
 // @desc    Get user by ID
