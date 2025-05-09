@@ -1,23 +1,22 @@
-import axios from 'axios';
+import axios from "axios";
 
 const api = axios.create({
-  baseURL: 'http://localhost:8014/notification/ctrl/api/v1',
+  baseURL: "http://localhost:8014/notification/ctrl/api/v1",
 });
 
-
 api.interceptors.request.use(
-  config => {
-    const token = localStorage.getItem('token');
+  (config) => {
+    const token = localStorage.getItem("token");
     if (token) {
-      config.headers['Authorization'] = `Bearer ${token}`;
+      config.headers["Authorization"] = `Bearer ${token}`;
     }
     return config;
   },
-  error => Promise.reject(error)
+  (error) => Promise.reject(error)
 );
 
 // const notificationData = {
-//   user: driver,  // id 
+//   user: driver,  // id
 //   user_role: "delivery_driver",
 //   order: orderId,
 //   type: "order_complete",
@@ -25,7 +24,7 @@ api.interceptors.request.use(
 // };
 
 export async function createNotification(data) {
-  const response = await api.post('/create', data);
+  const response = await api.post("/create", data);
   return response.data;
 }
 
@@ -54,14 +53,18 @@ export async function createUserNotification(order) {
     throw new Error("Missing required parameters: order.");
   }
 
-  let message
+  const status = order.status;
+  if (!status) {
+    throw new Error("Missing order status.");
+  }
 
-  switch (order.status) {
+  let message;
+  switch (status) {
     case "CONFIRMED":
       message = `Your order has been accepted by the delivery driver with id : ${order.deliverydriverId}.`;
       break;
     case "OUTFORDELIVERY":
-      message = `Your order has been picked up by the delivery driver from the restaurent and is out for delivery.`;
+      message = `Your order has been picked up by the delivery driver from the restaurant and is out for delivery.`;
       break;
     case "COMPLETED":
       message = `Your order has been delivered successfully.`;
@@ -73,10 +76,12 @@ export async function createUserNotification(order) {
   const data = {
     user: order.userId,
     user_role: "customer",
-    order: order,
+    order: order._id,
     type: "order_user",
     message: message,
   };
-  const response = await api.post('/create', data);
+
+  const response = await api.post("/create", data);
   return response.data;
 }
+

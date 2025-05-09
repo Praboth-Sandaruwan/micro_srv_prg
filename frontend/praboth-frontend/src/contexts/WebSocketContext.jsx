@@ -175,7 +175,7 @@ export const WebSocketProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
-    let watchId = null;
+    let watchId;
     // if (locationTracking && socketRef.current?.readyState === WebSocket.OPEN)
     if (locationTracking) {
       if (navigator.geolocation) {
@@ -206,16 +206,17 @@ export const WebSocketProvider = ({ children }) => {
   }, [locationTracking, connected]);
 
   const send_location = (ws) => {
+    let watchId;
     if (navigator.geolocation) {
       watchId = navigator.geolocation.watchPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
           const message = { latitude, longitude };
 
-          ws.send(JSON.stringify(message));
-          // if (socketRef.current.readyState === WebSocket.OPEN) {
-          //   socketRef.current.send(JSON.stringify(message));
-          // }
+          //ws.send(JSON.stringify(message));
+          if (socketRef.current.readyState === WebSocket.OPEN) {
+            socketRef.current.send(JSON.stringify(message));
+          }
         },
         (error) => {
           console.error("Error watching position:", error);

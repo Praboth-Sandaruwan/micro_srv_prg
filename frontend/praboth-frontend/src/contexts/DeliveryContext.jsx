@@ -102,31 +102,29 @@ export const DeliveryProvider = ({ children }) => {
 
   const updateDeliveryStatus = async (newStatus) => {
     if (!["PICKUP", "OUTFORDELIVERY", "COMPLETED"].includes(newStatus)) return;
-    setCurrentDelivery((prev) => {
-      if (!prev) return prev;
-      const newHistory = [
-        ...prev.history,
-        { status: newStatus, timestamp: new Date() },
-      ];
-      updateOrder(prev._id, {
+    if (!currentDelivery) return;
+
+    const newHistory = [
+      ...currentDelivery.history,
+      { status: newStatus, timestamp: new Date() },
+    ];
+
+    const updatedDelivery = {
+      ...currentDelivery,
+      status: newStatus,
+      history: newHistory,
+    };
+
+    try {
+      await updateOrder(currentDelivery._id, {
         status: newStatus,
         history: newHistory,
-      }).catch((err) => {
-        console.error("Failed to update order status:", err);
       });
-      createUserNotification({
-        ...prev,
-        status: newStatus,
-        history: newHistory,
-      }).catch((err) => {
-        console.error("Failed to create user notification:", err);
-      });
-      return {
-        ...prev,
-        status: newStatus,
-        history: newHistory,
-      };
-    });
+      setCurrentDelivery(updatedDelivery);
+      await createUserNotification(updatedDelivery);
+    } catch (err) {
+      console.error("Failed to update delivery status or notify user:", err);
+    }
   };
 
   const completeDelivery = async () => {
@@ -134,8 +132,9 @@ export const DeliveryProvider = ({ children }) => {
     const driver = localStorage.getItem("wsDriverId");
     const orderId = currentDelivery._id;
 
-    const newDelivery = await updateDeliveryStatus("COMPLETED");
-    localStorage.removeItem("currentDelivery");
+    await updateDeliveryStatus("COMPLETED");
+    const newDelivery = JSON.parse(localStorage.getItem("currentDelivery"));
+
     setCurrentDelivery(null);
 
     const notificationData = {
@@ -149,6 +148,8 @@ export const DeliveryProvider = ({ children }) => {
     await createUserNotification(newDelivery).catch((err) => {
       console.error("Failed to create user notification:", err);
     });
+
+    localStorage.removeItem("currentDelivery");
   };
 
   return (
