@@ -15,6 +15,16 @@ export const getAllOrders = async () => {
     }
 }
 
+export const getPendingOrders = async () => {
+    try {
+        const response = await api.get('/orders');
+        return response.data.filter(order => order.status === "PENDING" );
+    } catch (error) {
+        console.error('Error fetching completed orders:', error);
+        throw error;
+    }
+}
+
 export const getOrderById = async (orderId) => {
     try {
         const response = await api.get(`/orders/${orderId}`);

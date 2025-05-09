@@ -3,7 +3,7 @@ import { CheckCircleIcon } from "@heroicons/react/24/outline";
 import Popup from "./Popup";
 import { useNavigate } from "react-router-dom";
 import { useDelivery } from "../contexts/DeliveryContext.jsx";
-import { getAllOrders, updateOrder } from "../api/ordersapi.js";
+import { updateOrder, getPendingOrders } from "../api/ordersapi.js";
 
 export default function OrderList() {
   const [orders, setOrders] = useState([]);
@@ -16,7 +16,7 @@ export default function OrderList() {
   useEffect(() => {
     const loadOrders = async () => {
       try {
-        const data = await getAllOrders();
+        const data = await getPendingOrders();
         setOrders(data);
       } catch (err) {
         console.error("Failed to load orders", err);

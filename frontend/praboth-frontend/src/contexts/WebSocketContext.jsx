@@ -14,6 +14,7 @@ const WebSocketContext = createContext(null);
 
 export const WebSocketProvider = ({ children }) => {
   const [connected, setConnected] = useState(false);
+  const [socket, setSocket] = useState(null);
   const [locationTracking, setLocationTracking] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
 
@@ -28,20 +29,29 @@ export const WebSocketProvider = ({ children }) => {
   const closeSocket = () => {
     if (socketRef.current) {
       socketRef.current.close();
+      socketRef.current = null;
     }
     clearInterval(heartbeatIntervalRef.current);
     heartbeatIntervalRef.current = null;
+    setSocket(null);
   };
 
   // Reconnect logic with exponential backoff
   const reconnect = (driverId, token) => {
+    if (retryTimeoutRef.current) {
+      clearTimeout(retryTimeoutRef.current);
+      retryTimeoutRef.current = null;
+    }
+
     if (retryCount >= 10) {
       console.error("Max retries reached, stopping reconnection.");
       return;
     }
+
     const delay =
       Math.min(1000 * Math.pow(2, retryCount), 30000) +
       Math.floor(Math.random() * 3000);
+
     retryTimeoutRef.current = setTimeout(() => {
       setRetryCount((prev) => prev + 1);
       connectWebSocket(driverId, token);
@@ -51,85 +61,58 @@ export const WebSocketProvider = ({ children }) => {
   // WebSocket connection function
   const connectWebSocket = useCallback(
     (driverId, token) => {
-      if (connectingRef.current) {
-        console.log("Already connecting, skipping.");
-        return;
-      }
+      if (connectingRef.current) return;
       connectingRef.current = true;
-
-      const delay =
-        Math.min(1000 * Math.pow(2, retryCount), 30000) +
-        Math.floor(Math.random() * 3000);
-
-      const createConnection = () => {
-        console.log(
-          `Connecting WebSocket for driver ${driverId} (attempt ${
-            retryCount + 1
-          })`
-        );
-        closeSocket();
-        const ws = new WebSocket(
-          `ws://localhost:8011/deliverydriver/api/v1/ws/drivers/${driverId}?token=${token}`
-        );
-        socketRef.current = ws;
-
-        ws.onopen = () => {
-          console.log("WebSocket connection established.");
-          setConnected(true);
-          setRetryCount(0);
-          connectingRef.current = false;
-          localStorage.setItem("wsDriverId", driverId);
-
-          heartbeatIntervalRef.current = setInterval(() => {
-            if (ws.readyState === WebSocket.OPEN) {
-              ws.send(JSON.stringify({ type: "ping" }));
-            }
-          }, 10000);
-        };
-
-        ws.onclose = (event) => {
-          console.log("WebSocket closed:", event.code, event.reason);
-          setConnected(false);
-          setLocationTracking(false);
-          connectingRef.current = false;
+  
+      closeSocket(); // Ensure cleanup
+  
+      const ws = new WebSocket(
+        `ws://localhost:8011/deliverydriver/api/v1/ws/drivers/${driverId}?token=${token}`
+      );
+      socketRef.current = ws;
+      setSocket(ws); // New state added
+  
+      ws.onopen = () => {
+        setConnected(true);
+        setRetryCount(0);
+        connectingRef.current = false;
+        localStorage.setItem("wsDriverId", driverId);
+  
+        if (heartbeatIntervalRef.current)
           clearInterval(heartbeatIntervalRef.current);
-          heartbeatIntervalRef.current = null;
-
-          if (event.code === 1008) {
-            localStorage.removeItem("token");
-            localStorage.removeItem("wsDriverId");
-            navigate("/login");
-          } else if (event.code !== 1000) {
-            if (retryCount < 10) {
-              console.log(`Retrying connection in ${delay}ms...`);
-              retryTimeoutRef.current = setTimeout(() => {
-                setRetryCount((prev) => prev + 1);
-                reconnect(driverId, token);
-              }, delay);
-            } else {
-              console.error("Max retries reached, giving up.");
-            }
+  
+        heartbeatIntervalRef.current = setInterval(() => {
+          if (ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({ type: "ping" }));
           }
-        };
-
-        ws.onerror = (error) => {
-          console.error("WebSocket error:", error);
-        };
+        }, 10000);
       };
-
-      if (retryTimeoutRef.current) {
-        console.log("Reconnect already scheduled, skipping new attempt.");
-        return;
-      }
-
-      if (retryCount === 0) {
-        createConnection();
-      } else {
-        retryTimeoutRef.current = setTimeout(createConnection, delay);
-      }
+  
+      ws.onclose = (event) => {
+        setConnected(false);
+        setLocationTracking(false);
+        connectingRef.current = false;
+  
+        clearInterval(heartbeatIntervalRef.current);
+        heartbeatIntervalRef.current = null;
+  
+        if (event.code === 1008) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("wsDriverId");
+          navigate("/login");
+        } else if (event.code !== 1000) {
+          reconnect(driverId, token); // Delegate to reconnect
+        }
+      };
+  
+      ws.onerror = (error) => {
+        console.error("WebSocket error:", error);
+        connectingRef.current = false;
+      };
     },
-    [navigate, retryCount]
+    [navigate]
   );
+  
 
   // Reconnect on page load if token and driverId exist
   useEffect(() => {
@@ -180,7 +163,15 @@ export const WebSocketProvider = ({ children }) => {
   useEffect(() => {
     return () => {
       closeSocket();
-      clearTimeout(retryTimeoutRef.current);
+      if (retryTimeoutRef.current) {
+        clearTimeout(retryTimeoutRef.current);
+        retryTimeoutRef.current = null;
+      }
+      if (heartbeatIntervalRef.current) {
+        clearInterval(heartbeatIntervalRef.current);
+        heartbeatIntervalRef.current = null;
+      }
+      connectingRef.current = false;
     };
   }, []);
 
@@ -219,7 +210,8 @@ export const WebSocketProvider = ({ children }) => {
     if (
       connected &&
       !locationTracking &&
-      socketRef.current?.readyState === WebSocket.OPEN
+      socketRef.current &&
+      socketRef.current.readyState === WebSocket.OPEN
     ) {
       setLocationTracking(true);
     }
@@ -246,7 +238,7 @@ export const WebSocketProvider = ({ children }) => {
   return (
     <WebSocketContext.Provider
       value={{
-        socket: socketRef.current,
+        socket,
         connected,
         locationTracking,
         connectWebSocket,

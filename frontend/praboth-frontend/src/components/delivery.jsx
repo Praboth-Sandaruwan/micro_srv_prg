@@ -24,8 +24,9 @@ const libraries = ["places", "geometry"];
 const GOOGLE_MAPS_API_KEY = "AIzaSyDR5IF3eFb_qb_0v-W-E299o8Z0zu_jd08";
 
 export default function Delivery() {
-  const { currentDelivery, updateDeliveryStatus, completeDelivery } =
+  const { currentDelivery, updateDeliveryStatus, completeDelivery, loading } =
     useDelivery();
+
   const [driverLocation, setDriverLocation] = useState(null);
   const [destination, setDestination] = useState(null);
   const [routePath, setRoutePath] = useState([]);
@@ -90,7 +91,7 @@ export default function Delivery() {
     if (!currentDelivery) return;
 
     const targetLocation =
-      currentDelivery.status === "PICKUP"
+      currentDelivery.status === "CONFIRMED"
         ? currentDelivery.restaurantLocation
         : currentDelivery.deliveryAddress;
 
@@ -162,8 +163,18 @@ export default function Delivery() {
       </div>
     );
   if (!isLoaded) return <div className="p-4 text-center">Loading map...</div>;
+  if (loading)
+    return (
+      <div className="p-4 text-center">Checking for active delivery...</div>
+    );
+
   if (!currentDelivery)
-    return <div className="p-4 text-center">No active delivery.</div>;
+    return (
+      <div className="p-4 text-center text-yellow-600">
+        No active delivery assigned.
+      </div>
+    );
+
   if (error)
     return <div className="p-4 text-center text-red-500">Error: {error}</div>;
 
@@ -198,28 +209,28 @@ export default function Delivery() {
       {/* Info Box */}
       <div className="absolute top-4 left-4 bg-white p-4 rounded-lg shadow-xl max-w-[300px] z-[1000]">
         <h2 className="text-xl font-semibold mb-2">
-          {currentDelivery.status === "PICKUP"
+          {currentDelivery.status === "CONFIRMED"
             ? "Going to Restaurant"
             : "Going to Customer"}
         </h2>
         <p className="text-gray-700 mb-4 text-sm">
-          {currentDelivery.status === "PICKUP"
+          {currentDelivery.status === "CONFIRMED"
             ? currentDelivery.restaurantLocation.address
             : currentDelivery.deliveryAddress.fullAddress}
         </p>
         <button
           onClick={
-            currentDelivery.status === "PICKUP"
+            currentDelivery.status === "CONFIRMED"
               ? handlePickup
               : handleCompleteDelivery
           }
           className={`py-2 px-4 w-full rounded ${
-            currentDelivery.status === "PICKUP"
+            currentDelivery.status === "CONFIRMED"
               ? "bg-blue-600 hover:bg-blue-700"
               : "bg-green-600 hover:bg-green-700"
           } text-white`}
         >
-          {currentDelivery.status === "PICKUP"
+          {currentDelivery.status === "CONFIRMED"
             ? "Pickup Order"
             : "Complete Delivery"}
         </button>

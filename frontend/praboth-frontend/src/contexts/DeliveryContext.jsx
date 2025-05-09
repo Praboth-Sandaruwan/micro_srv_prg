@@ -5,7 +5,10 @@ import { updateOrder } from "../api/ordersapi";
 const DeliveryContext = createContext(null);
 
 export const DeliveryProvider = ({ children }) => {
-  const [currentDelivery, setCurrentDelivery] = useState(() => {
+  const [currentDelivery, setCurrentDelivery] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
     const savedDelivery = localStorage.getItem("currentDelivery");
     if (savedDelivery) {
       const parsed = JSON.parse(savedDelivery);
@@ -13,10 +16,10 @@ export const DeliveryProvider = ({ children }) => {
         ...h,
         timestamp: new Date(h.timestamp),
       }));
-      return parsed;
+      setCurrentDelivery(parsed);
     }
-    return null;
-  });
+    setLoading(false); //FINISH LOADING AFTER INIT
+  }, []);
 
   useEffect(() => {
     if (currentDelivery) {
@@ -62,7 +65,8 @@ export const DeliveryProvider = ({ children }) => {
       }
 
       const deliveryData = {
-        history: [{ status: "PICKUP", timestamp: new Date() }],
+        status: "CONFIRMED",
+        history: [{ status: "CONFIRMED", timestamp: new Date() }],
         restaurantLocation: {
           lat: restaurant.location.latitude,
           lng: restaurant.location.longitude,
@@ -76,10 +80,11 @@ export const DeliveryProvider = ({ children }) => {
         deliverydriverId: localStorage.getItem("wsDriverId"),
       };
 
-      console.log("Delivery id:", delivery._id);
-      console.log("New delivery accepted:", deliveryData);
-
       const newDelivery = await updateOrder(delivery._id, deliveryData);
+      newDelivery.history = newDelivery.history.map((h) => ({
+        ...h,
+        timestamp: new Date(h.timestamp),
+      }));
 
       setCurrentDelivery(newDelivery);
       localStorage.setItem("currentDelivery", JSON.stringify(newDelivery));
@@ -90,28 +95,39 @@ export const DeliveryProvider = ({ children }) => {
 
   const updateDeliveryStatus = async (newStatus) => {
     if (!["PICKUP", "OUTFORDELIVERY", "COMPLETED"].includes(newStatus)) return;
-    await updateOrder(currentDelivery._id, {
-      status: newStatus,
-      history: [...prev.history, { status: newStatus, timestamp: new Date() }],
+    setCurrentDelivery((prev) => {
+      if (!prev) return prev;
+      const newHistory = [
+        ...prev.history,
+        { status: newStatus, timestamp: new Date() },
+      ];
+      updateOrder(prev._id, {
+        status: newStatus,
+        history: newHistory,
+      }).catch((err) => {
+        console.error("Failed to update order status:", err);
+      });
+      return {
+        ...prev,
+        status: newStatus,
+        history: newHistory,
+      };
     });
-    setCurrentDelivery((prev) => ({
-      ...prev,
-      status: newStatus,
-      history: [...prev.history, { status: newStatus, timestamp: new Date() }],
-    }));
   };
 
   const completeDelivery = async () => {
+    if (!currentDelivery) return;
     const driver = localStorage.getItem("wsDriverId");
-    localStorage.removeItem("currentDelivery");
-    setCurrentDelivery(null);
+    const orderId = currentDelivery._id;
 
     await updateDeliveryStatus("COMPLETED");
+    localStorage.removeItem("currentDelivery");
+    setCurrentDelivery(null);
 
     const notificationData = {
       user: driver,
       user_role: "delivery_driver",
-      order: currentDelivery._id,
+      order: orderId,
       type: "order_complete",
       message: "You have completed the delivery ",
     };
@@ -125,6 +141,7 @@ export const DeliveryProvider = ({ children }) => {
         acceptDelivery,
         updateDeliveryStatus,
         completeDelivery,
+        loading, 
       }}
     >
       {children}

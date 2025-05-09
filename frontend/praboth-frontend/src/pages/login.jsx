@@ -32,14 +32,15 @@ function Login() {
 
         localStorage.setItem("wsDriverId", driverId);
 
+        navigate("/dashboard");
+        
         connectWebSocket(driverId, data.access_token);
 
-        navigate("/dashboard");
       } else {
         setError("Invalid credentials. Please try again.");
       }
     } catch (err) {
-      console.error("Login error details:", err.response?.data);
+      console.error("Login error details:", err);
       setError(err.response?.data?.detail || "Login failed");
     } finally {
       setIsLoading(false);
