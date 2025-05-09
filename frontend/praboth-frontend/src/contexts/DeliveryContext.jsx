@@ -4,6 +4,7 @@ import {
   createUserNotification,
 } from "../api/notificationapi";
 import { updateOrder } from "../api/ordersapi";
+import { getRestaurantById, getUserById } from "../api/usermgapi"; // Adjust path if needed
 
 const DeliveryContext = createContext(null);
 
@@ -21,7 +22,7 @@ export const DeliveryProvider = ({ children }) => {
       }));
       setCurrentDelivery(parsed);
     }
-    setLoading(false); //FINISH LOADING AFTER INIT
+    setLoading(false);
   }, []);
 
   useEffect(() => {
@@ -44,23 +45,8 @@ export const DeliveryProvider = ({ children }) => {
 
   const acceptDelivery = async (delivery) => {
     try {
-      const [restaurantsRes, usersRes] = await Promise.all([
-        fetch("/db/restaurents.json"),
-        fetch("/db/users.json"),
-      ]);
-
-      if (!restaurantsRes.ok || !usersRes.ok)
-        throw new Error("Failed to fetch restaurants or users");
-
-      const [restaurants, users] = await Promise.all([
-        restaurantsRes.json(),
-        usersRes.json(),
-      ]);
-
-      const restaurant = restaurants.find(
-        (r) => r._id === delivery.restaurantId
-      );
-      const customer = users.find((u) => u._id === delivery.userId);
+      const restaurant = await getRestaurantById(delivery.restaurantId);
+      const customer = await getUserById(delivery.userId);
 
       if (!restaurant || !customer) {
         console.error("Restaurant or customer not found");
@@ -94,7 +80,10 @@ export const DeliveryProvider = ({ children }) => {
       });
 
       setCurrentDelivery(newDelivery);
-      localStorage.setItem("currentDelivery", JSON.stringify(newDelivery));
+      localStorage.setItem(
+        "currentDelivery",
+        JSON.stringify(newDelivery)
+      );
     } catch (err) {
       console.error("acceptDelivery error:", err);
     }
@@ -133,7 +122,6 @@ export const DeliveryProvider = ({ children }) => {
     const orderId = currentDelivery._id;
 
     await updateDeliveryStatus("COMPLETED");
-    const newDelivery = JSON.parse(localStorage.getItem("currentDelivery"));
 
     setCurrentDelivery(null);
 
@@ -142,12 +130,14 @@ export const DeliveryProvider = ({ children }) => {
       user_role: "delivery_driver",
       order: orderId,
       type: "order_complete",
-      message: "You have completed the delivery ",
+      message: "You have completed the delivery",
     };
-    await createNotification(notificationData);
-    await createUserNotification(newDelivery).catch((err) => {
-      console.error("Failed to create user notification:", err);
-    });
+
+    try {
+      await createNotification(notificationData);
+    } catch (err) {
+      console.error("Failed to create driver notification:", err);
+    }
 
     localStorage.removeItem("currentDelivery");
   };
