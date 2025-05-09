@@ -1,0 +1,48 @@
+# Node.js dependencies
+/node_modules/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Docker-related
+.dockerignore
+docker-compose.override.yml
+docker-compose.override.yaml
+docker-volume/
+*.pid
+
+# Ignore bind-mounted volumes (if any created for Docker)
+app/node_modules/
+volume-data/
+
+# Build artifacts
+dist/
+build/
+
+# Temp and database dumps
+tmp/
+temp/
+dump/
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Editor/IDE settings
+.vscode/
+.idea/
+
+# Coverage reports
+coverage/
+
+# Misc
+*.tgz
