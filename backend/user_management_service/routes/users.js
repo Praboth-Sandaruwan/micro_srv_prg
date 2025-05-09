@@ -10,7 +10,8 @@ const router = express.Router();
 // @route   GET api/users
 // @desc    Get all users
 // @access  Private/Admin
-router.get('/', auth, checkRole('admin'), userController.getAllUsers);
+// router.get('/', auth, checkRole('admin'), userController.getAllUsers);
+router.get('/', userController.getAllUsers); //for testing purposes
 
 // @route   GET api/users/:id
 // @desc    Get user by ID
@@ -37,7 +38,7 @@ router.put(
 router.delete('/:id', auth, checkRole('admin'), userController.deleteUser);
 
 
-// @route   GET api/dd/users/:id
+// @route   GET api/users/dd/:id
 // @desc    Get user by ID for delivery dashboard(test)
 // @access  public
 router.get('/dd/:id', userController.getUserById);
