@@ -1,5 +1,8 @@
 import React, { createContext, useState, useEffect, useContext } from "react";
-import { createNotification } from "../api/notificationapi";
+import {
+  createNotification,
+  createUserNotification,
+} from "../api/notificationapi";
 import { updateOrder } from "../api/ordersapi";
 
 const DeliveryContext = createContext(null);
@@ -86,6 +89,10 @@ export const DeliveryProvider = ({ children }) => {
         timestamp: new Date(h.timestamp),
       }));
 
+      await createUserNotification(newDelivery).catch((err) => {
+        console.error("Failed to create user notification:", err);
+      });
+
       setCurrentDelivery(newDelivery);
       localStorage.setItem("currentDelivery", JSON.stringify(newDelivery));
     } catch (err) {
@@ -107,6 +114,13 @@ export const DeliveryProvider = ({ children }) => {
       }).catch((err) => {
         console.error("Failed to update order status:", err);
       });
+      createUserNotification({
+        ...prev,
+        status: newStatus,
+        history: newHistory,
+      }).catch((err) => {
+        console.error("Failed to create user notification:", err);
+      });
       return {
         ...prev,
         status: newStatus,
@@ -120,7 +134,7 @@ export const DeliveryProvider = ({ children }) => {
     const driver = localStorage.getItem("wsDriverId");
     const orderId = currentDelivery._id;
 
-    await updateDeliveryStatus("COMPLETED");
+    const newDelivery = await updateDeliveryStatus("COMPLETED");
     localStorage.removeItem("currentDelivery");
     setCurrentDelivery(null);
 
@@ -132,6 +146,9 @@ export const DeliveryProvider = ({ children }) => {
       message: "You have completed the delivery ",
     };
     await createNotification(notificationData);
+    await createUserNotification(newDelivery).catch((err) => {
+      console.error("Failed to create user notification:", err);
+    });
   };
 
   return (
@@ -141,7 +158,7 @@ export const DeliveryProvider = ({ children }) => {
         acceptDelivery,
         updateDeliveryStatus,
         completeDelivery,
-        loading, 
+        loading,
       }}
     >
       {children}

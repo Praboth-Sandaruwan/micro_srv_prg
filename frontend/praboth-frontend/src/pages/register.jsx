@@ -31,7 +31,8 @@ function Register() {
         status: "idle",
         deliveries: 0,
         rating: 0.0,
-        currentdelivery: []
+        currentdelivery: [],
+        role:"delivery_driver"
       };
 
       // const response = await api.post(

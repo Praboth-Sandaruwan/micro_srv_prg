@@ -35,6 +35,10 @@ export default function OrderList() {
     setShowConfirm(true);
   };
 
+  const handleConfDelClick = () => {
+    navigate("/delivery");
+  }
+
   const confirmAccept = async () => {
     try {
       const updatedOrder = await updateOrder(selectedOrder._id, {
@@ -69,7 +73,7 @@ export default function OrderList() {
             onClick={() => handleOrderClick(order)}
             className={`border rounded-lg p-4 cursor-pointer transition hover:shadow-lg ${
               order.status === "CONFIRMED"
-                ? "bg-green-50 border-green-400"
+                ? "bg-green-50 border-yellow-300"
                 : "bg-white"
             }`}
           >
@@ -86,7 +90,8 @@ export default function OrderList() {
               <span
                 className={`px-3 py-1 rounded-full text-xs font-semibold ${
                   order.status === "CONFIRMED"
-                    ? "bg-green-200 text-green-800"
+                    ? "bg-yellow-100 text-yellow-800" : order.status === "OUTFORDELIVERY"
+                    ? "bg-green-100 text-green-700"
                     : "bg-blue-100 text-blue-700"
                 }`}
               >
@@ -131,6 +136,24 @@ export default function OrderList() {
               >
                 <CheckCircleIcon className="h-5 w-5 mr-2" />
                 Accept Order
+              </button>
+            )}
+            {selectedOrder.status === "CONFIRMED" && (
+              <button
+                onClick={handleConfDelClick}
+                className="w-full flex items-center justify-center bg-yellow-600 hover:bg-yellow-700 text-white font-semibold py-2 rounded-lg mt-2"
+              >
+                <CheckCircleIcon className="h-5 w-5 mr-2" />
+                Show Route
+              </button>
+            )}
+            {selectedOrder.status === "OUTFORDELIVERY" && (
+              <button
+                onClick={handleConfDelClick}
+                className="w-full flex items-center justify-center bg-green-600 hover:bg-green-700 text-white font-semibold py-2 rounded-lg mt-2"
+              >
+                <CheckCircleIcon className="h-5 w-5 mr-2" />
+                Show Route
               </button>
             )}
           </div>

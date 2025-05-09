@@ -16,6 +16,14 @@ api.interceptors.request.use(
   error => Promise.reject(error)
 );
 
+// const notificationData = {
+//   user: driver,  // id 
+//   user_role: "delivery_driver",
+//   order: orderId,
+//   type: "order_complete",
+//   message: "You have completed the delivery ",
+// };
+
 export async function createNotification(data) {
   const response = await api.post('/create', data);
   return response.data;
@@ -38,5 +46,37 @@ export async function updateNotification(id, data) {
 
 export async function readnotification(id) {
   const response = await api.put(`/update/${id}`, { status: true });
+  return response.data;
+}
+
+export async function createUserNotification(order) {
+  if (!order) {
+    throw new Error("Missing required parameters: order.");
+  }
+
+  let message
+
+  switch (order.status) {
+    case "CONFIRMED":
+      message = `Your order has been accepted by the delivery driver with id : ${order.deliverydriverId}.`;
+      break;
+    case "OUTFORDELIVERY":
+      message = `Your order has been picked up by the delivery driver from the restaurent and is out for delivery.`;
+      break;
+    case "COMPLETED":
+      message = `Your order has been delivered successfully.`;
+      break;
+    default:
+      throw new Error("Invalid notification type.");
+  }
+
+  const data = {
+    user: order.userId,
+    user_role: "customer",
+    order: order,
+    type: "order_user",
+    message: message,
+  };
+  const response = await api.post('/create', data);
   return response.data;
 }

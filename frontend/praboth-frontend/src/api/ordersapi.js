@@ -18,12 +18,23 @@ export const getAllOrders = async () => {
 export const getPendingOrders = async () => {
     try {
         const response = await api.get('/orders');
-        return response.data.filter(order => order.status === "PENDING" );
+        return response.data.filter(order => order.status === "PENDING" || order.status === "CONFIRMED" || order.status === "OUTFORDELIVERY");
     } catch (error) {
         console.error('Error fetching completed orders:', error);
         throw error;
     }
 }
+
+export const getMyOrdersDrv = async (id) => {
+    try {
+        const response = await api.get('/orders');
+        return response.data.filter(order => order.deliveryDriverId === id);
+    } catch (error) {
+        console.error('Error fetching completed orders:', error);
+        throw error;
+    }
+}
+
 
 export const getOrderById = async (orderId) => {
     try {
@@ -96,3 +107,14 @@ export const getCompletedOrders = async (userId) => {
         throw error;
     }
 }
+
+export const getMyOrdersUsr = async (id) => {
+    try {
+        const response = await api.get('/orders');
+        return response.data.filter(order => order.userId === id);
+    } catch (error) {
+        console.error('Error fetching completed orders:', error);
+        throw error;
+    }
+}
+

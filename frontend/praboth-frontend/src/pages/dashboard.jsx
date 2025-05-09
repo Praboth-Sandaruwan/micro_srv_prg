@@ -11,7 +11,6 @@ import { DeliveryProvider } from "../contexts/DeliveryContext";
 import {
   fetchNotificationsByUser,
   readnotification,
-  updateNotification,
 } from "../api/notificationapi";
 
 export default function Dashboard() {
@@ -149,8 +148,7 @@ export default function Dashboard() {
           </button>
         </div>
       </div>
-      {/* ...rest of your dashboard... */}
-
+      
       <DeliveryProvider>
         <OrderList />
       </DeliveryProvider>

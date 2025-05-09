@@ -1,4 +1,3 @@
-// src/contexts/WebSocketContext.jsx
 import React, {
   createContext,
   useState,
@@ -63,39 +62,40 @@ export const WebSocketProvider = ({ children }) => {
     (driverId, token) => {
       if (connectingRef.current) return;
       connectingRef.current = true;
-  
-      closeSocket(); // Ensure cleanup
-  
+
+      //closeSocket(); // Ensuring cleanup
+
       const ws = new WebSocket(
         `ws://localhost:8011/deliverydriver/api/v1/ws/drivers/${driverId}?token=${token}`
       );
       socketRef.current = ws;
-      setSocket(ws); // New state added
-  
+      setSocket(ws); // New state adding
+
       ws.onopen = () => {
         setConnected(true);
         setRetryCount(0);
         connectingRef.current = false;
         localStorage.setItem("wsDriverId", driverId);
-  
+
         if (heartbeatIntervalRef.current)
           clearInterval(heartbeatIntervalRef.current);
-  
+
         heartbeatIntervalRef.current = setInterval(() => {
           if (ws.readyState === WebSocket.OPEN) {
-            ws.send(JSON.stringify({ type: "ping" }));
+            //ws.send(JSON.stringify({ type: "ping" }));
+            send_location();
           }
-        }, 10000);
+        }, 5000);
       };
-  
+
       ws.onclose = (event) => {
         setConnected(false);
         setLocationTracking(false);
         connectingRef.current = false;
-  
+
         clearInterval(heartbeatIntervalRef.current);
         heartbeatIntervalRef.current = null;
-  
+
         if (event.code === 1008) {
           localStorage.removeItem("token");
           localStorage.removeItem("wsDriverId");
@@ -104,7 +104,7 @@ export const WebSocketProvider = ({ children }) => {
           reconnect(driverId, token); // Delegate to reconnect
         }
       };
-  
+
       ws.onerror = (error) => {
         console.error("WebSocket error:", error);
         connectingRef.current = false;
@@ -112,7 +112,6 @@ export const WebSocketProvider = ({ children }) => {
     },
     [navigate]
   );
-  
 
   // Reconnect on page load if token and driverId exist
   useEffect(() => {
@@ -177,7 +176,8 @@ export const WebSocketProvider = ({ children }) => {
 
   useEffect(() => {
     let watchId = null;
-    if (locationTracking && socketRef.current?.readyState === WebSocket.OPEN) {
+    // if (locationTracking && socketRef.current?.readyState === WebSocket.OPEN)
+    if (locationTracking) {
       if (navigator.geolocation) {
         watchId = navigator.geolocation.watchPosition(
           (position) => {
@@ -205,13 +205,36 @@ export const WebSocketProvider = ({ children }) => {
     };
   }, [locationTracking, connected]);
 
+  const send_location = (ws) => {
+    if (navigator.geolocation) {
+      watchId = navigator.geolocation.watchPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          const message = { latitude, longitude };
+
+          ws.send(JSON.stringify(message));
+          // if (socketRef.current.readyState === WebSocket.OPEN) {
+          //   socketRef.current.send(JSON.stringify(message));
+          // }
+        },
+        (error) => {
+          console.error("Error watching position:", error);
+        },
+        {
+          enableHighAccuracy: true,
+          maximumAge: 1000,
+          timeout: 10000,
+        }
+      );
+    }
+  };
   // Auto-start location tracking when connected
   useEffect(() => {
     if (
       connected &&
-      !locationTracking &&
-      socketRef.current &&
-      socketRef.current.readyState === WebSocket.OPEN
+      !locationTracking
+      // && socketRef.current &&
+      // socketRef.current.readyState === WebSocket.OPEN
     ) {
       setLocationTracking(true);
     }
