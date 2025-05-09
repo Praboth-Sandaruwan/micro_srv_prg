@@ -6,6 +6,7 @@ import { WebSocketProvider } from "./contexts/WebSocketContext";
 import { DeliveryProvider } from "./contexts/DeliveryContext";
 import Delivery from "./components/delivery";
 import DeliveryUsr from "./pages/deliveryUsr";
+import DriverProfilePage from "./pages/profile";
 
 
 import 'leaflet/dist/leaflet.css';
@@ -22,6 +23,7 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/delivery" element={<Delivery />} />
           <Route path="/delivery/:id" element={<DeliveryUsr />} />
+          <Route path="/profile" element={<DriverProfilePage />} />
         </Routes>
       </DeliveryProvider>
     </WebSocketProvider>

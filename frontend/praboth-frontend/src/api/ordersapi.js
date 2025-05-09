@@ -28,7 +28,8 @@ export const getPendingOrders = async () => {
 export const getMyOrdersDrv = async (id) => {
     try {
         const response = await api.get('/orders');
-        return response.data.filter(order => order.deliveryDriverId === id);
+        //console.log(response.data.map(order => order.deliverydriverId));
+        return response.data.filter(order => order.deliverydriverId=== id);
     } catch (error) {
         console.error('Error fetching completed orders:', error);
         throw error;

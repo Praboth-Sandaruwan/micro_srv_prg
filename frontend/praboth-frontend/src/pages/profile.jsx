@@ -1,20 +1,27 @@
 import React, { useEffect, useState } from "react";
-import {  } from "../api/driverapi";
+import { updateDriver, fetchDriverById } from "../api/driverapi";
 import { getMyOrdersDrv } from "../api/ordersapi";
-import { StarIcon, TruckIcon, CheckCircleIcon } from "@heroicons/react/24/solid";
+import {
+  StarIcon,
+  TruckIcon,
+  CheckCircleIcon,
+} from "@heroicons/react/24/solid";
+import Navbar from "../components/navbar";
 
-export default function DriverProfilePage({ driverId }) {
+export default function DriverProfilePage() {
   const [driver, setDriver] = useState(null);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const driverId = localStorage.getItem("wsDriverId");
 
   useEffect(() => {
     async function fetchData() {
       setLoading(true);
-      const driverData = await getDriver(driverId);
-      const orderData = await getOrdersByDriverId(driverId);
+      const driverData = await fetchDriverById(driverId);
+      const orderData = await getMyOrdersDrv(driverId);
+      console.log(driverData, orderData);
       setDriver(driverData);
-      setOrders(orderData.filter(o => o.status === "COMPLETED"));
+      setOrders(orderData.filter(order => order.status === "COMPLETED"));
       setLoading(false);
     }
     fetchData();
@@ -38,6 +45,7 @@ export default function DriverProfilePage({ driverId }) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white py-10 px-4">
+      <Navbar/>
       <div className="max-w-3xl mx-auto bg-white rounded-2xl shadow-xl p-8">
         {/* Profile Header */}
         <div className="flex items-center gap-6 mb-8">
@@ -49,7 +57,9 @@ export default function DriverProfilePage({ driverId }) {
             <div className="text-gray-500">{driver.email}</div>
             <div className="mt-2 flex gap-3 items-center">
               <span className="inline-flex items-center px-3 py-1 rounded-full bg-blue-100 text-blue-800 text-xs font-semibold">
-                {driver.vehicle.charAt(0).toUpperCase() + driver.vehicle.slice(1)} Vehicle
+                {driver.vehicle.charAt(0).toUpperCase() +
+                  driver.vehicle.slice(1)}{" "}
+                Vehicle
               </span>
               <span className="inline-flex items-center px-3 py-1 rounded-full bg-green-100 text-green-800 text-xs font-semibold">
                 {driver.status.charAt(0).toUpperCase() + driver.status.slice(1)}
@@ -61,22 +71,30 @@ export default function DriverProfilePage({ driverId }) {
         {/* Stats */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 mb-10">
           <div className="bg-blue-50 rounded-xl p-4 text-center">
-            <div className="text-2xl font-bold text-blue-700">{driver.deliveries}</div>
+            <div className="text-2xl font-bold text-blue-700">
+              {driver.deliveries}
+            </div>
             <div className="text-xs text-gray-500">Deliveries</div>
           </div>
           <div className="bg-yellow-50 rounded-xl p-4 text-center">
             <div className="flex justify-center">
               <StarIcon className="h-6 w-6 text-yellow-400" />
             </div>
-            <div className="text-lg font-semibold text-yellow-600">{driver.rating.toFixed(1)}</div>
+            <div className="text-lg font-semibold text-yellow-600">
+              {driver.rating.toFixed(1)}
+            </div>
             <div className="text-xs text-gray-500">Rating</div>
           </div>
           <div className="bg-green-50 rounded-xl p-4 text-center">
-            <div className="text-lg font-semibold text-green-600">{driver.city}</div>
+            <div className="text-lg font-semibold text-green-600">
+              {driver.city}
+            </div>
             <div className="text-xs text-gray-500">City</div>
           </div>
           <div className="bg-indigo-50 rounded-xl p-4 text-center">
-            <div className="text-lg font-semibold text-indigo-600">{driver.phone}</div>
+            <div className="text-lg font-semibold text-indigo-600">
+              {driver.phone}
+            </div>
             <div className="text-xs text-gray-500">Phone</div>
           </div>
         </div>
@@ -88,16 +106,20 @@ export default function DriverProfilePage({ driverId }) {
             Completed Deliveries
           </h2>
           {orders.length === 0 ? (
-            <div className="text-gray-400 italic">No completed deliveries yet.</div>
+            <div className="text-gray-400 italic">
+              No completed deliveries yet.
+            </div>
           ) : (
             <div className="space-y-6">
-              {orders.map(order => (
+              {orders.map((order) => (
                 <div
                   key={order._id}
                   className="rounded-xl border border-gray-100 shadow-sm bg-gradient-to-r from-white to-blue-50 p-5"
                 >
                   <div className="flex justify-between items-center mb-2">
-                    <div className="font-semibold text-blue-800">Order #{order.title}</div>
+                    <div className="font-semibold text-blue-800">
+                      Order #{order.title}
+                    </div>
                     <span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700">
                       {order.status}
                     </span>
@@ -118,8 +140,8 @@ export default function DriverProfilePage({ driverId }) {
                     <span className="font-semibold">Delivered:</span>{" "}
                     {order.history && order.history.length > 0
                       ? new Date(
-                          order.history.find(h => h.status === "COMPLETED")?.timestamp ||
-                          order.updatedAt
+                          order.history.find((h) => h.status === "COMPLETED")
+                            ?.timestamp || order.updatedAt
                         ).toLocaleString()
                       : new Date(order.updatedAt).toLocaleString()}
                   </div>
