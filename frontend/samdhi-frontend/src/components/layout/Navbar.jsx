@@ -31,7 +31,7 @@ const NavList = () => {
     navItems = [
       { path: '/customer/dashboard', name: 'Dashboard' },
       { path: '/customer/restaurants', name: 'Add Restaurant' },
-      { path: '/customer/orders', name: 'My Orders' }
+      { path: '/delivery', name: 'My Orders' }
     ];
   }
 
